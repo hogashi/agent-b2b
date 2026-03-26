@@ -98,11 +98,7 @@ button {
 </details>
 
 <script>
-let masterGain = null;
-let kickGain = null;
-let bassGain = null;
-let hihatGain = null;
-let melodyGain = null;
+const gains = {};
 let audioCtx = null;
 let isPlaying = false;
 let isThinking = false;
@@ -191,21 +187,14 @@ function setBpm(val) {
 function start() {
   if (isPlaying) return;
   audioCtx = new AudioContext();
-  masterGain = audioCtx.createGain();
-  masterGain.gain.value = gainValues.master / 100;
-  masterGain.connect(audioCtx.destination);
-  kickGain = audioCtx.createGain();
-  kickGain.gain.value = gainValues.kick / 100;
-  kickGain.connect(masterGain);
-  bassGain = audioCtx.createGain();
-  bassGain.gain.value = gainValues.bass / 100;
-  bassGain.connect(masterGain);
-  hihatGain = audioCtx.createGain();
-  hihatGain.gain.value = gainValues.hihat / 100;
-  hihatGain.connect(masterGain);
-  melodyGain = audioCtx.createGain();
-  melodyGain.gain.value = gainValues.melody / 100;
-  melodyGain.connect(masterGain);
+  gains.master = audioCtx.createGain();
+  gains.master.gain.value = gainValues.master / 100;
+  gains.master.connect(audioCtx.destination);
+  for (const name of ['kick', 'bass', 'hihat', 'melody']) {
+    gains[name] = audioCtx.createGain();
+    gains[name].gain.value = gainValues[name] / 100;
+    gains[name].connect(gains.master);
+  }
   isPlaying = true;
   nextBeatTime = audioCtx.currentTime + 0.05;
   scheduler();
@@ -219,7 +208,7 @@ function stop() {
   clearTimeout(timerID);
   if (audioCtx) audioCtx.close();
   audioCtx = null;
-  masterGain = null;
+  for (const name of Object.keys(gains)) delete gains[name];
   isPlaying = false;
   document.getElementById('toggleBtn').disabled = true;
   updatePowerUI();
@@ -280,7 +269,7 @@ function playKick(time) {
   osc.frequency.exponentialRampToValueAtTime(30, time + 0.12);
   gain.gain.setValueAtTime(0.6, time);
   gain.gain.exponentialRampToValueAtTime(0.001, time + 0.25);
-  osc.connect(gain).connect(kickGain);
+  osc.connect(gain).connect(gains.kick);
   osc.start(time);
   osc.stop(time + 0.15);
 }
@@ -306,7 +295,7 @@ function playBass(time) {
   filter.type = 'lowpass';
   filter.frequency.setValueAtTime(300, time);
 
-  osc.connect(filter).connect(gain).connect(bassGain);
+  osc.connect(filter).connect(gain).connect(gains.bass);
   osc.start(time);
   osc.stop(time + 0.12);
 }
@@ -329,7 +318,7 @@ function playHihat(time) {
   gain.gain.setValueAtTime(0.3, time);
   gain.gain.exponentialRampToValueAtTime(0.001, time + 0.04);
 
-  noise.connect(filter).connect(gain).connect(hihatGain);
+  noise.connect(filter).connect(gain).connect(gains.hihat);
   noise.start(time);
   noise.stop(time + 0.05);
 }
@@ -353,17 +342,15 @@ function playMelody(time) {
   filter.type = 'lowpass';
   filter.frequency.setValueAtTime(1500, time);
 
-  osc.connect(filter).connect(gain).connect(melodyGain);
+  osc.connect(filter).connect(gain).connect(gains.melody);
   osc.start(time);
   osc.stop(time + 0.1);
 }
 
-const gainNodes = { master: () => masterGain, kick: () => kickGain, bass: () => bassGain, hihat: () => hihatGain, melody: () => melodyGain };
 const gainValues = { master: 50, kick: 50, bass: 50, hihat: 50, melody: 50 };
 function setGain(name, val) {
   gainValues[name] = Number(val);
-  const node = gainNodes[name]();
-  if (node) node.gain.value = val / 100;
+  if (gains[name]) gains[name].gain.value = val / 100;
   saveSettings();
 }
 
