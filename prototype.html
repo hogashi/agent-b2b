@@ -35,9 +35,10 @@
   #toggleBtn { background: #25a; color: #fff; }
   #toggleBtn.thinking { background: #a52; }
   #info { margin-top: 2rem; color: #888; font-size: 0.9rem; }
-  #volume { margin-top: 1rem; }
-  #volume input { width: 200px; vertical-align: middle; }
-  #volume label { color: #aaa; }
+  .sliders { margin-top: 1rem; }
+  .sliders div { margin: 0.3rem 0; }
+  .sliders input { width: 160px; vertical-align: middle; }
+  .sliders label { color: #aaa; display: inline-block; width: 80px; text-align: right; margin-right: 0.5rem; }
 </style>
 </head>
 <body>
@@ -47,9 +48,11 @@
   <button id="startBtn" onclick="start()">Start</button>
   <button id="toggleBtn" onclick="toggle()" disabled>idle</button>
 </div>
-<div id="volume">
-  <label>volume: <span id="volValue">50</span>%</label><br>
-  <input type="range" min="0" max="100" value="50" oninput="setVolume(this.value)">
+<div class="sliders">
+  <div><label>master</label><input type="range" min="0" max="100" value="50" oninput="setGain('master', this.value)"></div>
+  <div><label>kick</label><input type="range" min="0" max="100" value="100" oninput="setGain('kick', this.value)"></div>
+  <div><label>bass</label><input type="range" min="0" max="100" value="100" oninput="setGain('bass', this.value)"></div>
+  <div><label>melody</label><input type="range" min="0" max="100" value="100" oninput="setGain('melody', this.value)"></div>
 </div>
 <div id="info">
   Start を押してから toggle で idle / thinking を切り替え
@@ -57,6 +60,9 @@
 
 <script>
 let masterGain = null;
+let kickGain = null;
+let bassGain = null;
+let melodyGain = null;
 let audioCtx = null;
 let isPlaying = false;
 let isThinking = false;
@@ -73,6 +79,12 @@ function start() {
   masterGain = audioCtx.createGain();
   masterGain.gain.value = 0.5;
   masterGain.connect(audioCtx.destination);
+  kickGain = audioCtx.createGain();
+  kickGain.connect(masterGain);
+  bassGain = audioCtx.createGain();
+  bassGain.connect(masterGain);
+  melodyGain = audioCtx.createGain();
+  melodyGain.connect(masterGain);
   isPlaying = true;
   nextBeatTime = audioCtx.currentTime + 0.05;
   scheduler();
@@ -117,7 +129,7 @@ function playKick(time) {
   osc.frequency.exponentialRampToValueAtTime(30, time + 0.12);
   gain.gain.setValueAtTime(0.6, time);
   gain.gain.exponentialRampToValueAtTime(0.001, time + 0.25);
-  osc.connect(gain).connect(masterGain);
+  osc.connect(gain).connect(kickGain);
   osc.start(time);
   osc.stop(time + 0.15);
 }
@@ -135,7 +147,7 @@ function playBass(time) {
   filter.type = 'lowpass';
   filter.frequency.setValueAtTime(300, time);
 
-  osc.connect(filter).connect(gain).connect(masterGain);
+  osc.connect(filter).connect(gain).connect(bassGain);
   osc.start(time);
   osc.stop(time + 0.12);
 }
@@ -159,15 +171,15 @@ function playMelody(time, count) {
   filter.type = 'lowpass';
   filter.frequency.setValueAtTime(1500, time);
 
-  osc.connect(filter).connect(gain).connect(masterGain);
+  osc.connect(filter).connect(gain).connect(melodyGain);
   osc.start(time);
   osc.stop(time + 0.1);
 }
 
-function setVolume(val) {
-  const v = val / 100;
-  if (masterGain) masterGain.gain.value = v;
-  document.getElementById('volValue').textContent = val;
+const gainNodes = { master: () => masterGain, kick: () => kickGain, bass: () => bassGain, melody: () => melodyGain };
+function setGain(name, val) {
+  const node = gainNodes[name]();
+  if (node) node.gain.value = val / 100;
 }
 
 function toggle() {
