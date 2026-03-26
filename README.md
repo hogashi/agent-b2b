@@ -10,10 +10,7 @@ Go back-to-back with your AI agent — a beat system that reacts to Claude Code'
 ## Setup
 
 ```bash
-git clone https://github.com/hogashi/agent-b2b.git
-cd agent-b2b
-npm install
-npm start
+npx agent-b2b
 ```
 
 The browser opens automatically at `http://localhost:43819`.
@@ -21,7 +18,7 @@ The browser opens automatically at `http://localhost:43819`.
 To use a different port:
 
 ```bash
-npm start -- --port 12345
+npx agent-b2b --port 12345
 ```
 
 Add the following `hooks` to your Claude Code config (`.claude/settings.json`):
@@ -55,7 +52,16 @@ Add the following `hooks` to your Claude Code config (`.claude/settings.json`):
 }
 ```
 
-All communication stays on localhost. No data is sent to the internet.
+All communication stays on localhost after installation. No data is sent to the internet.
+
+### Alternative: clone and run
+
+```bash
+git clone https://github.com/hogashi/agent-b2b.git
+cd agent-b2b
+npm install
+npm start
+```
 
 ## Usage
 
