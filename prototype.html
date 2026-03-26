@@ -79,10 +79,10 @@
   <table>
     <tr><th></th><th>- VOLUME -</th><th colspan="2">- TRACKS -</th></tr>
     <tr><td>MASTER</td><td><input type="range" min="0" max="100" value="50" oninput="setGain('master', this.value)"></td><th>YOURTURN</th><th>OPPONENT</th></tr>
-    <tr><td>KICK</td><td><input type="range" min="0" max="100" value="100" oninput="setGain('kick', this.value)"></td><td><input type="checkbox" checked onchange="setTrackState('kick','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('kick','thinking',this.checked)"></td></tr>
-    <tr><td>BASS</td><td><input type="range" min="0" max="100" value="100" oninput="setGain('bass', this.value)"></td><td><input type="checkbox" checked onchange="setTrackState('bass','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('bass','thinking',this.checked)"></td></tr>
-    <tr><td>HIHAT</td><td><input type="range" min="0" max="100" value="100" oninput="setGain('hihat', this.value)"></td><td><input type="checkbox" checked onchange="setTrackState('hihat','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('hihat','thinking',this.checked)"></td></tr>
-    <tr><td>MELODY</td><td><input type="range" min="0" max="100" value="100" oninput="setGain('melody', this.value)"></td><td><input type="checkbox" onchange="setTrackState('melody','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('melody','thinking',this.checked)"></td></tr>
+    <tr><td>KICK</td><td><input type="range" min="0" max="100" value="50" oninput="setGain('kick', this.value)"></td><td><input type="checkbox" checked onchange="setTrackState('kick','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('kick','thinking',this.checked)"></td></tr>
+    <tr><td>BASS</td><td><input type="range" min="0" max="100" value="50" oninput="setGain('bass', this.value)"></td><td><input type="checkbox" checked onchange="setTrackState('bass','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('bass','thinking',this.checked)"></td></tr>
+    <tr><td>HIHAT</td><td><input type="range" min="0" max="100" value="50" oninput="setGain('hihat', this.value)"></td><td><input type="checkbox" checked onchange="setTrackState('hihat','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('hihat','thinking',this.checked)"></td></tr>
+    <tr><td>MELODY</td><td><input type="range" min="0" max="100" value="50" oninput="setGain('melody', this.value)"></td><td><input type="checkbox" onchange="setTrackState('melody','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('melody','thinking',this.checked)"></td></tr>
   </table>
 </div>
 
@@ -293,7 +293,7 @@ function playMelody(time, count) {
 }
 
 const gainNodes = { master: () => masterGain, kick: () => kickGain, bass: () => bassGain, hihat: () => hihatGain, melody: () => melodyGain };
-const gainValues = { master: 50, kick: 100, bass: 100, hihat: 100, melody: 100 };
+const gainValues = { master: 50, kick: 50, bass: 50, hihat: 50, melody: 50 };
 function setGain(name, val) {
   gainValues[name] = Number(val);
   const node = gainNodes[name]();
