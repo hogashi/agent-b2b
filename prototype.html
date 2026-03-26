@@ -151,6 +151,7 @@ function stop() {
 function togglePower() {
   if (isPlaying) stop();
   else start();
+  saveSettings();
 }
 
 function updatePowerUI() {
@@ -337,7 +338,7 @@ connectWs();
 const STORAGE_KEY = 'agent-b2b-settings';
 
 function saveSettings() {
-  const data = { gainValues, trackEnabled };
+  const data = { gainValues, trackEnabled, powerOn: isPlaying };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
@@ -353,6 +354,9 @@ function loadSettings() {
       }
     }
   } catch (e) {}
+
+  // 電源状態を復元
+  if (data.powerOn) start();
 
   // スライダーに反映
   document.querySelectorAll('.sliders input[type=range]').forEach(el => {
