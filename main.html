@@ -28,6 +28,9 @@
     color: #eee;
   }
   button:hover { background: #333; }
+  input[type=range] { -webkit-appearance: none; appearance: none; height: 6px; background: #333; border-radius: 3px; outline: none; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: #5a8; border-radius: 2px; cursor: pointer; }
+  input[type=range]::-moz-range-thumb { width: 14px; height: 14px; background: #5a8; border: none; border-radius: 2px; cursor: pointer; }
   #powerBtn { font-size: 2rem; width: 3.5rem; height: 3.5rem; padding: 0; border-radius: 50%; background: #333; border: 2px solid #555; }
   #powerBtn.on { background: #2a5; border-color: #3b6; }
   .header { display: grid; grid-template-columns: auto auto; grid-template-rows: auto auto; gap: 0 0.8rem; justify-content: center; }
@@ -47,17 +50,13 @@
   .bpm-control { margin-top: 1rem; }
   .bpm-control label { color: #aaa; margin-right: 0.5rem; }
   .bpm-control input[type=number] { width: 4em; font-family: monospace; font-size: 1rem; background: #222; color: #eee; border: 1px solid #555; border-radius: 4px; padding: 0.2rem 0.4rem; text-align: center; }
-  .bpm-control input[type=range] { width: 160px; vertical-align: middle; margin-left: 0.5rem; -webkit-appearance: none; appearance: none; height: 6px; background: #333; border-radius: 3px; outline: none; }
-  .bpm-control input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: #5a8; border-radius: 2px; cursor: pointer; }
-  .bpm-control input[type=range]::-moz-range-thumb { width: 14px; height: 14px; background: #5a8; border: none; border-radius: 2px; cursor: pointer; }
+  .bpm-control input[type=range] { width: 160px; vertical-align: middle; margin-left: 0.5rem; }
   .mixer { margin-top: 1rem; text-transform: uppercase; }
   .mixer table { border-collapse: collapse; }
   .mixer th, .mixer td { padding: 0.2rem 0.6rem; text-align: center; }
   .mixer th { color: #aaa; }
   .mixer td:first-child { text-align: right; color: #aaa; }
-  .mixer input[type=range] { width: 140px; vertical-align: middle; -webkit-appearance: none; appearance: none; height: 6px; background: #333; border-radius: 3px; outline: none; }
-  .mixer input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: #5a8; border-radius: 2px; cursor: pointer; }
-  .mixer input[type=range]::-moz-range-thumb { width: 14px; height: 14px; background: #5a8; border: none; border-radius: 2px; cursor: pointer; }
+  .mixer input[type=range] { width: 140px; vertical-align: middle; }
   .mixer input[type=checkbox] { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; background: #222; border: 2px solid #666; border-radius: 2px; cursor: pointer; vertical-align: middle; }
   .mixer input[type=checkbox]:checked { background: #5a8; border-color: #6b9; }
   .panel { margin-top: 0.5rem; width: 100%; max-width: 600px; }
