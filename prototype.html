@@ -168,6 +168,7 @@ function buildSeqGrid() {
   }
 }
 buildSeqGrid();
+document.querySelector('.sequencer').addEventListener('toggle', saveSettings);
 
 function updateSeqHighlight(stepIndex) {
   document.querySelectorAll('.seq-step.playing').forEach(el => el.classList.remove('playing'));
@@ -417,7 +418,8 @@ connectWs();
 const STORAGE_KEY = 'agent-b2b-settings';
 
 function saveSettings() {
-  const data = { gainValues, trackEnabled, powerOn: isPlaying, bpm, patterns };
+  const seqOpen = document.querySelector('.sequencer').open;
+  const data = { gainValues, trackEnabled, powerOn: isPlaying, bpm, patterns, seqOpen };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
@@ -437,6 +439,7 @@ function loadSettings() {
   }
 
   if (data.bpm) setBpm(data.bpm);
+  if (data.seqOpen) document.querySelector('.sequencer').open = true;
   if (data.patterns) {
     for (const track of seqTracks) {
       if (data.patterns[track]) patterns[track] = data.patterns[track];
