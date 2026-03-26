@@ -38,6 +38,10 @@
   #toggleBtn { background: #25a; color: #fff; }
   #toggleBtn.thinking { background: #a52; }
   #info { margin-top: 2rem; color: #888; font-size: 0.9rem; }
+  .bpm-control { margin-top: 1rem; }
+  .bpm-control label { color: #aaa; margin-right: 0.5rem; }
+  .bpm-control input[type=number] { width: 4em; font-family: monospace; font-size: 1rem; background: #222; color: #eee; border: 1px solid #555; border-radius: 4px; padding: 0.2rem 0.4rem; text-align: center; }
+  .bpm-control input[type=range] { width: 160px; vertical-align: middle; margin-left: 0.5rem; }
   .sliders { margin-top: 1rem; }
   .sliders div { margin: 0.3rem 0; }
   .sliders input { width: 160px; vertical-align: middle; }
@@ -57,6 +61,9 @@
 <div id="agentState">off</div>
 <div>
   <button id="toggleBtn" onclick="toggle()" disabled>idle</button>
+</div>
+<div class="bpm-control">
+  <label>BPM</label><input id="bpmNumber" type="number" min="60" max="240" value="128" oninput="setBpm(this.value)"><input id="bpmSlider" type="range" min="60" max="240" value="128" oninput="setBpm(this.value)">
 </div>
 <div class="sliders">
   <div><label>master</label><input type="range" min="0" max="100" value="50" oninput="setGain('master', this.value)"></div>
@@ -106,9 +113,17 @@ function isTrackActive(track) {
 let nextBeatTime = 0;
 let timerID = null;
 
-const BPM = 128;
-const BEAT = 60 / BPM; // 1拍の長さ (秒)
+let bpm = 128;
+let beat = 60 / bpm; // 1拍の長さ (秒)
 const SCHEDULE_AHEAD = 0.1; // 先読み秒数
+
+function setBpm(val) {
+  bpm = Math.max(60, Math.min(240, Number(val)));
+  beat = 60 / bpm;
+  document.getElementById('bpmNumber').value = bpm;
+  document.getElementById('bpmSlider').value = bpm;
+  saveSettings();
+}
 
 function start() {
   if (isPlaying) return;
@@ -171,7 +186,7 @@ function scheduler() {
   while (nextBeatTime < audioCtx.currentTime + SCHEDULE_AHEAD) {
     playBeat(nextBeatTime, beatCount);
     beatCount++;
-    nextBeatTime += BEAT / 2; // 8分音符単位でスケジュール
+    nextBeatTime += beat / 2; // 8分音符単位でスケジュール
   }
   timerID = setTimeout(scheduler, 25);
 }
@@ -338,7 +353,7 @@ connectWs();
 const STORAGE_KEY = 'agent-b2b-settings';
 
 function saveSettings() {
-  const data = { gainValues, trackEnabled, powerOn: isPlaying };
+  const data = { gainValues, trackEnabled, powerOn: isPlaying, bpm };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
@@ -356,6 +371,8 @@ function loadSettings() {
       if (data.trackEnabled[track]) Object.assign(trackEnabled[track], data.trackEnabled[track]);
     }
   }
+
+  if (data.bpm) setBpm(data.bpm);
 
   // スライダーに反映
   document.querySelectorAll('.sliders input[type=range]').forEach(el => {
