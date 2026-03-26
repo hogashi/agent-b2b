@@ -328,7 +328,6 @@ function connectWs() {
   ws.onmessage = (e) => {
     const data = JSON.parse(e.data);
     if (data.state) {
-      if (!isPlaying) start();
       setState(data.state);
     }
   };
