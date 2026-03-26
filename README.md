@@ -11,10 +11,16 @@ A four-on-the-floor beat system that reacts to Claude Code's state. The beat lay
 git clone https://github.com/hogashi/agent-b2b.git
 cd agent-b2b
 npm install
-node server.js
+npm start
 ```
 
 The browser opens automatically at `http://localhost:43819`.
+
+To use a different port:
+
+```bash
+npm start -- --port 12345
+```
 
 Add the following to your Claude Code hooks config (`.claude/settings.json`):
 

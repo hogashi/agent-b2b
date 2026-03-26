@@ -4,7 +4,17 @@ const path = require("path");
 const { exec } = require("child_process");
 const { WebSocketServer } = require("ws");
 
-const PORT = 43819; // 0xAB2B (agent-b2b)
+const DEFAULT_PORT = 43819; // 0xAB2B (agent-b2b)
+
+function parsePort() {
+  const portIndex = process.argv.indexOf("--port");
+  if (portIndex !== -1 && process.argv[portIndex + 1]) {
+    return Number(process.argv[portIndex + 1]);
+  }
+  return Number(process.env.PORT) || DEFAULT_PORT;
+}
+
+const PORT = parsePort();
 
 const htmlPath = path.join(__dirname, "prototype.html");
 
