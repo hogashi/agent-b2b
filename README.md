@@ -1,9 +1,11 @@
 # agent-b2b
 
-A four-on-the-floor beat system that reacts to Claude Code's state. The beat layers change depending on whether Claude is idle or thinking.
+Go back-to-back with your AI agent — a beat system that reacts to Claude Code's state.
 
-- Idle (waiting for prompt): kick + bass + hihat
-- Thinking (AI processing): melody layer kicks in
+### Example
+
+- YOURTURN (waiting for prompt): kick + bass + hihat
+- OPPONENT (AI processing): melody layer kicks in
 
 ## Setup
 
@@ -22,7 +24,7 @@ To use a different port:
 npm start -- --port 12345
 ```
 
-Add the following to your Claude Code hooks config (`.claude/settings.json`):
+Add the following `hooks` to your Claude Code config (`.claude/settings.json`):
 
 ```json
 {
@@ -52,6 +54,8 @@ Add the following to your Claude Code hooks config (`.claude/settings.json`):
   }
 }
 ```
+
+**Note:** You need to click the power button once to start audio, due to the browser's Web Audio API policy requiring user interaction.
 
 All communication stays on localhost. No data is sent to the internet.
 
