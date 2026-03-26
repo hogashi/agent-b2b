@@ -215,10 +215,85 @@
 5. **リソース消費** — 常時オーディオ再生の CPU / メモリ負荷
 6. **環境依存** — macOS / Linux での挙動差
 
+## 調査結果
+
+### Claude Code Hooks（調査済み）
+
+`Stop` hook が存在し、応答完了時に発火することを確認した。
+これにより状態検出に必要な2つの hook が揃った。
+
+参考:
+- https://code.claude.com/docs/en/hooks.md (Hooks Reference — 各イベントの仕様)
+- https://code.claude.com/docs/en/hooks-guide.md (Hooks Guide — 設定方法)
+
+| 状態遷移 | hook | タイミング |
+|---|---|---|
+| idle → thinking | `UserPromptSubmit` | ユーザーがプロンプトを送信した時 |
+| thinking → idle | `Stop` | Claude が応答を完了した時 |
+
+hook は stdin で JSON を受け取り、任意のシェルコマンドを実行できる。
+
+---
+
+## 実装方針
+
+プロトタイプ (prototype.html) の Web Audio API による音声再生は動作確認済み。
+次のステップとして、Claude Code の状態と同期させる。
+
+### 構成
+
+```
+Claude Code hooks                        ブラウザ
+────────────────                        ────────
+UserPromptSubmit → curl POST /thinking ─┐
+                                         ├→ WebSocket → prototype.html
+Stop             → curl POST /idle ──────┘
+                                         ▲
+                                    中継サーバー
+                                  (localhost:3000)
+```
+
+### 必要な実装
+
+1. **中継サーバー** — HTTP エンドポイント + WebSocket サーバー
+   - `POST /thinking` → 全 WebSocket クライアントに `{"state":"thinking"}` を送信
+   - `POST /idle` → 全 WebSocket クライアントに `{"state":"idle"}` を送信
+   - Node.js か Python で小さく書く
+
+2. **prototype.html の拡張** — WebSocket クライアントを追加
+   - サーバーに接続し、状態変更メッセージを受け取って `toggle()` 相当の処理を行う
+
+3. **Claude Code hook 設定** — settings.json に追加
+   ```json
+   {
+     "hooks": {
+       "UserPromptSubmit": [
+         {
+           "hooks": [
+             {
+               "type": "command",
+               "command": "curl -s -X POST http://localhost:3000/thinking"
+             }
+           ]
+         }
+       ],
+       "Stop": [
+         {
+           "hooks": [
+             {
+               "type": "command",
+               "command": "curl -s -X POST http://localhost:3000/idle"
+             }
+           ]
+         }
+       ]
+     }
+   }
+   ```
+
 ## 未調査事項
 
 - [ ] cmux の拡張ポイント（内部ブラウザ、I/O 傍受等で楽にできるか）
-- [ ] Claude Code の hook で応答完了を検出できるイベントがあるか
 - [ ] mpv IPC のレイテンシ
 - [ ] sounddevice でギャップレスループが可能か
 - [ ] macOS での fswatch のレイテンシ
