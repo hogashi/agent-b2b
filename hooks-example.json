@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "curl -s -X POST http://localhost:3000/thinking",
+            "command": "curl -s -X POST http://localhost:43819/thinking",
             "timeout": 5
           }
         ]
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "curl -s -X POST http://localhost:3000/idle",
+            "command": "curl -s -X POST http://localhost:43819/idle",
             "timeout": 5
           }
         ]

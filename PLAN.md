@@ -250,7 +250,7 @@ UserPromptSubmit → curl POST /thinking ─┐
 Stop             → curl POST /idle ──────┘
                                          ▲
                                     中継サーバー
-                                  (localhost:3000)
+                                  (localhost:43819)
 ```
 
 ### 必要な実装
@@ -272,7 +272,7 @@ Stop             → curl POST /idle ──────┘
            "hooks": [
              {
                "type": "command",
-               "command": "curl -s -X POST http://localhost:3000/thinking"
+               "command": "curl -s -X POST http://localhost:43819/thinking"
              }
            ]
          }
@@ -282,7 +282,7 @@ Stop             → curl POST /idle ──────┘
            "hooks": [
              {
                "type": "command",
-               "command": "curl -s -X POST http://localhost:3000/idle"
+               "command": "curl -s -X POST http://localhost:43819/idle"
              }
            ]
          }

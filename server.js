@@ -1,7 +1,7 @@
 const http = require("http");
 const { WebSocketServer } = require("ws");
 
-const PORT = 3000;
+const PORT = 43819; // 0xAB2B (agent-b2b)
 
 const server = http.createServer((req, res) => {
   if (req.method === "POST" && req.url === "/thinking") {
