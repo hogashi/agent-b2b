@@ -218,7 +218,7 @@ function start() {
   gains.master = audioCtx.createGain();
   gains.master.gain.value = gainValues.master / 100;
   gains.master.connect(audioCtx.destination);
-  for (const name of ['kick', 'bass', 'hihat', 'melody']) {
+  for (const name of seqTracks) {
     gains[name] = audioCtx.createGain();
     gains[name].gain.value = gainValues[name] / 100;
     gains[name].connect(gains.master);
