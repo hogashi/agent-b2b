@@ -56,12 +56,19 @@ button {
   .mixer input[type=range] { width: 140px; vertical-align: middle; }
   .sequencer { margin-top: 0.5rem; width: 100%; max-width: 600px; }
   .sequencer summary { color: #aaa; cursor: pointer; text-transform: uppercase; font-size: 0.9rem; }
-  .sequencer .seq-grid { display: grid; grid-template-columns: 60px repeat(16, 30px); gap: 0; margin-top: 0.5rem; align-items: center; }
+  .sequencer .seq-grid { padding-left: 20px; display: grid; grid-template-columns: 60px repeat(16, 30px); gap: 0; margin-top: 0.5rem; align-items: center; }
   .sequencer .seq-label { text-align: right; color: #aaa; font-size: 0.8rem; text-transform: uppercase; padding-right: 0.4rem; }
   .sequencer .seq-step { width: 30px; height: 30px; border: 1px solid #444; background: #222; cursor: pointer; border-radius: 4px; margin: 0; box-sizing: border-box; }
   .sequencer .seq-step.on { background: #5a8; border-color: #6b9; }
   .sequencer .seq-step.playing { box-shadow: 0 0 4px #fff; }
   .sequencer .beat-marker { text-align: center; color: #555; font-size: 0.7rem; }
+  .settings-backup { margin-top: 0.5rem; width: 100%; max-width: 600px; }
+  .settings-backup summary { color: #aaa; cursor: pointer; text-transform: uppercase; font-size: 0.9rem; }
+  .settings-backup .backup-buttons { margin-top: 0.2rem; display: flex; gap: 0.5rem; }
+  .settings-backup button { font-size: 0.8rem; padding: 0.3rem 0.8rem; }
+  .settings-backup .btn-danger { color: #c66; border-color: #c66; }
+  .settings-backup .settings-content { padding-left: 20px; }
+  .settings-backup .settings-section { color: #888; font-size: 0.9rem; text-transform: uppercase; margin-top: 0.5rem; }
 </style>
 </head>
 <body>
@@ -95,6 +102,21 @@ button {
 <details class="sequencer">
   <summary>- SEQUENCER -</summary>
   <div class="seq-grid" id="seqGrid"></div>
+</details>
+<details class="settings-backup">
+  <summary>- SETTINGS -</summary>
+  <div class="settings-content">
+    <div class="settings-section">BACKUP & SHARE</div>
+    <div class="backup-buttons">
+      <button onclick="exportSettings()">EXPORT</button>
+      <button onclick="document.getElementById('importFile').click()">IMPORT</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importSettings(this)">
+    </div>
+    <div class="settings-section">RESET</div>
+    <div class="backup-buttons">
+      <button class="btn-danger" onclick="resetAll()">RESET ALL</button>
+    </div>
+  </div>
 </details>
 
 <script>
@@ -448,6 +470,38 @@ function loadSettings() {
       if (cb2) cb2.checked = trackEnabled[name].thinking;
     }
   });
+}
+
+function resetAll() {
+  if (!confirm('Reset all settings to defaults?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+}
+
+function exportSettings() {
+  saveSettings();
+  const raw = localStorage.getItem(STORAGE_KEY);
+  const blob = new Blob([raw], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'agent-b2b-settings.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importSettings(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      JSON.parse(reader.result);
+    } catch (e) { return; }
+    localStorage.setItem(STORAGE_KEY, reader.result);
+    loadSettings();
+  };
+  reader.readAsText(file);
+  input.value = '';
 }
 
 loadSettings();
