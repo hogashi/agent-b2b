@@ -345,15 +345,17 @@ function saveSettings() {
 function loadSettings() {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return;
+  let data;
   try {
-    const data = JSON.parse(raw);
-    if (data.gainValues) Object.assign(gainValues, data.gainValues);
-    if (data.trackEnabled) {
-      for (const track of Object.keys(trackEnabled)) {
-        if (data.trackEnabled[track]) Object.assign(trackEnabled[track], data.trackEnabled[track]);
-      }
+    data = JSON.parse(raw);
+  } catch (e) { return; }
+
+  if (data.gainValues) Object.assign(gainValues, data.gainValues);
+  if (data.trackEnabled) {
+    for (const track of Object.keys(trackEnabled)) {
+      if (data.trackEnabled[track]) Object.assign(trackEnabled[track], data.trackEnabled[track]);
     }
-  } catch (e) {}
+  }
 
   // 電源状態を復元
   if (data.powerOn) start();
