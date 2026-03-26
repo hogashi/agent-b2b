@@ -91,6 +91,7 @@ const trackEnabled = {
 
 function setTrackState(track, state, enabled) {
   trackEnabled[track][state] = enabled;
+  saveSettings();
 }
 
 function isTrackActive(track) {
@@ -108,15 +109,19 @@ function start() {
   if (isPlaying) return;
   audioCtx = new AudioContext();
   masterGain = audioCtx.createGain();
-  masterGain.gain.value = 0.5;
+  masterGain.gain.value = gainValues.master / 100;
   masterGain.connect(audioCtx.destination);
   kickGain = audioCtx.createGain();
+  kickGain.gain.value = gainValues.kick / 100;
   kickGain.connect(masterGain);
   bassGain = audioCtx.createGain();
+  bassGain.gain.value = gainValues.bass / 100;
   bassGain.connect(masterGain);
   hihatGain = audioCtx.createGain();
+  hihatGain.gain.value = gainValues.hihat / 100;
   hihatGain.connect(masterGain);
   melodyGain = audioCtx.createGain();
+  melodyGain.gain.value = gainValues.melody / 100;
   melodyGain.connect(masterGain);
   isPlaying = true;
   nextBeatTime = audioCtx.currentTime + 0.05;
@@ -238,9 +243,12 @@ function playMelody(time, count) {
 }
 
 const gainNodes = { master: () => masterGain, kick: () => kickGain, bass: () => bassGain, hihat: () => hihatGain, melody: () => melodyGain };
+const gainValues = { master: 50, kick: 100, bass: 100, hihat: 100, melody: 100 };
 function setGain(name, val) {
+  gainValues[name] = Number(val);
   const node = gainNodes[name]();
   if (node) node.gain.value = val / 100;
+  saveSettings();
 }
 
 function setState(newState) {
@@ -292,6 +300,46 @@ function connectWs() {
   ws.onerror = () => ws.close();
 }
 connectWs();
+
+// localStorage で設定を保存・復元
+const STORAGE_KEY = 'agent-b2b-settings';
+
+function saveSettings() {
+  const data = { gainValues, trackEnabled };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function loadSettings() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+  try {
+    const data = JSON.parse(raw);
+    if (data.gainValues) Object.assign(gainValues, data.gainValues);
+    if (data.trackEnabled) {
+      for (const track of Object.keys(trackEnabled)) {
+        if (data.trackEnabled[track]) Object.assign(trackEnabled[track], data.trackEnabled[track]);
+      }
+    }
+  } catch (e) {}
+
+  // スライダーに反映
+  document.querySelectorAll('.sliders input[type=range]').forEach(el => {
+    const name = el.closest('div').querySelector('label').textContent;
+    if (gainValues[name] !== undefined) el.value = gainValues[name];
+  });
+
+  // チェックボックスに反映
+  document.querySelectorAll('.state-config tr').forEach(row => {
+    const cells = row.querySelectorAll('td');
+    if (cells.length < 3) return;
+    const track = cells[0].textContent;
+    if (!trackEnabled[track]) return;
+    cells[1].querySelector('input').checked = trackEnabled[track].idle;
+    cells[2].querySelector('input').checked = trackEnabled[track].thinking;
+  });
+}
+
+loadSettings();
 </script>
 </body>
 </html>
