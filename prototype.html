@@ -243,12 +243,16 @@ function setGain(name, val) {
   if (node) node.gain.value = val / 100;
 }
 
-function toggle() {
-  isThinking = !isThinking;
+function setState(newState) {
+  isThinking = newState === 'thinking';
   document.getElementById('state').textContent = isThinking ? 'thinking' : 'idle';
   const btn = document.getElementById('toggleBtn');
   btn.textContent = isThinking ? 'thinking' : 'idle';
   btn.classList.toggle('thinking', isThinking);
+}
+
+function toggle() {
+  setState(isThinking ? 'idle' : 'thinking');
 }
 
 // キーボードでも切り替え
@@ -259,6 +263,35 @@ document.addEventListener('keydown', (e) => {
     else toggle();
   }
 });
+
+// WebSocket でサーバーから状態を受け取る
+const WS_URL = 'ws://localhost:3000';
+let ws = null;
+let wsStatus = document.createElement('div');
+wsStatus.style.cssText = 'position:fixed;top:8px;right:8px;font-size:0.8rem;color:#666';
+document.body.appendChild(wsStatus);
+
+function connectWs() {
+  ws = new WebSocket(WS_URL);
+  ws.onopen = () => {
+    wsStatus.textContent = 'ws: connected';
+    wsStatus.style.color = '#4a4';
+  };
+  ws.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+    if (data.state) {
+      if (!isPlaying) start();
+      setState(data.state);
+    }
+  };
+  ws.onclose = () => {
+    wsStatus.textContent = 'ws: disconnected';
+    wsStatus.style.color = '#a44';
+    setTimeout(connectWs, 3000);
+  };
+  ws.onerror = () => ws.close();
+}
+connectWs();
 </script>
 </body>
 </html>
