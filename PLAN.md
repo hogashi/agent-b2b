@@ -5,125 +5,219 @@
 - プロンプト待ち (idle): キック + ベースのみ
 - AI 処理中 (thinking): メロディーが加わる
 
-## アーキテクチャ
+---
 
-```
-┌─────────────┐     OSC      ┌──────────────┐
-│ State       │──────────────▶│ Audio Engine  │──▶ 🔊
-│ Detector    │  melody on/off│ (Sonic Pi /   │
-│             │               │  SuperCollider)│
-└──────┬──────┘               └──────────────┘
-       │ PTY proxy / hooks
-       │
-┌──────┴──────┐
-│ Claude Code │
-│ (terminal)  │
-└─────────────┘
-```
+## 案の一覧
 
-## 構成要素
+### A. 状態検出の案
 
-### 1. 状態検出
+#### A1. Claude Code Hooks
 
-Claude Code の idle / processing を区別する。
-
-**方法A: Claude Code Hooks**
-
-- `UserPromptSubmit` hook → melody ON の OSC を送信
+- `UserPromptSubmit` hook → thinking 開始を検出
 - 応答完了の検出が課題（`ResponseComplete` 相当の hook があるか要確認）
+- hook は設定だけで済むので導入コストが低い
+- ただし hook で拾えるイベントの種類に制約がある
 
-**方法B: ターミナル I/O 監視**
+#### A2. ターミナル I/O 監視 (PTY proxy)
 
-- PTY proxy (`socat` 等) で Claude Code の出力をキャプチャ
-- プロンプト文字列の出現で状態遷移を判定
+- `socat` や自前の PTY proxy で Claude Code の入出力を中間キャプチャ
+- プロンプト文字列（`❯` や `>` 等）の出現で idle 復帰を判定
+- ストリーミング出力中 = thinking と判定
+- 双方向 I/O を壊さず中継する必要がある
 
-**方法C: プロセス状態監視**
+#### A3. プロセス状態ポーリング
 
-- ネットワーク I/O やプロセスツリーのポーリング
+- Claude Code の子プロセスや API コール（ネットワーク接続）を `lsof` / `ps` で監視
+- 数秒おきのポーリングなのでレイテンシが大きい
 - 精度は低い
 
-### 2. オーディオエンジン
+#### A4. cmux / ターミナルマルチプレクサ
 
-常時再生 + リアルタイムにレイヤーを on/off する。
+- cmux のようなツールでターミナルセッションをラップ
+- I/O を傍受して状態を判定
+- cmux 自体がそういう拡張ポイントを持っているかは要調査
 
-| 選択肢 | 特徴 |
-|---|---|
-| SuperCollider | 最も柔軟。OSC で外部から制御可能 |
-| Sonic Pi | SuperCollider ベースで書きやすい。`live_loop` でレイヤー管理が直感的 |
-| Pure Data (Pd) | OSC/MIDI で制御可。GUI なしでも動く |
-| Web Audio API + Node.js | Tone.js でシーケンス管理。ブラウザが必要 |
-| TidalCycles | パターン操作が強力だが外部制御はやや面倒 |
+#### A5. Claude Code のステータスライン / ステータスバー
 
-Sonic Pi が最も手軽な選択肢。
+- Claude Code が tmux や iTerm2 のステータスバーに状態を出しているなら、それを読む
+- 外部プロセスが tmux の変数やファイルを監視する
 
-### 3. シグナル伝達
+#### A6. ファイルベースのシグナル
 
-- OSC (Open Sound Control) でシェルからオーディオエンジンへ状態を送る
-- `oscsend` (liblo) を使う
+- Claude Code の hook でファイルに状態を書き出す（例: `/tmp/claude-state`）
+- オーディオ側がそのファイルを inotify / fswatch で監視
+- シンプルだがファイル I/O のレイテンシがある
 
-```bash
-# melody ON
-oscsend localhost 4560 /agent/state i 1
-# melody OFF
-oscsend localhost 4560 /agent/state i 0
-```
+---
 
-## Sonic Pi サンプルコード
+### B. オーディオ再生の案
 
-```ruby
-live_loop :kick do
-  sample :bd_haus
-  sleep 0.5
-end
+#### B1. リアルタイム合成 (SuperCollider / Sonic Pi)
 
-live_loop :bass do
-  use_synth :tb303
-  play :e1, release: 0.3, cutoff: 80
-  sleep 0.5
-end
+- プログラムで音を動的に生成
+- 柔軟性は最大だがセットアップが重い
+- OSC で外部から制御可能
+- ループの同期やクオンタイズが自然にできる
 
-live_loop :melody do
-  if get(:agent_thinking)
-    use_synth :prophet
-    play scale(:e3, :minor_pentatonic).choose, release: 0.2
-    sleep 0.25
-  else
-    sleep 0.5
-  end
-end
+#### B2. 事前録音ループの重ね再生
 
-live_loop :state_listener do
-  use_real_time
-  msg = sync "/osc*/agent/state"
-  if msg[0] == 1
-    set :agent_thinking, true
-  else
-    set :agent_thinking, false
-  end
-end
-```
+- 同じ長さの WAV ループを複数用意（kick_bass.wav, melody.wav）
+- 常に全トラック再生し、melody のボリュームを 0/1 で切り替え
+- 合成エンジン不要でシンプル
+- ギャップレスループの実現が課題
 
-## Claude Code Hook 設定例
+#### B3. Python + sounddevice / pyaudio
 
-```json
-{
-  "hooks": {
-    "UserPromptSubmit": [
-      { "command": "oscsend localhost 4560 /agent/state i 1" }
-    ]
-  }
-}
-```
+- WAV を numpy 配列として読み、コールバックでループ再生
+- melody チャンネルのゲインをリアルタイムに変更
+- ループ位置を見てクオンタイズも可能
+- 依存が少ない
 
-## 技術的課題
+#### B4. Web Audio API (ブラウザ)
 
-1. **応答完了の確実な検出** — 最大のボトルネック。hook がなければ PTY proxy でプロンプト復帰を検出する
-2. **レイテンシ** — 状態遷移からオーディオ変化までの遅延を最小化する
-3. **音楽的な自然さ** — レイヤーの on/off が拍に合うようクオンタイズする
+- `AudioBufferSourceNode` でループ再生、`GainNode` で音量制御
+- ブラウザがギャップレスループを処理してくれる
+- WebSocket で状態を受け取る
+- ブラウザを開いておく必要がある
 
-## 次のステップ
+#### B5. Node.js + 何か
 
-- [ ] Claude Code の hook で `ResponseComplete` 相当があるか調査
-- [ ] Sonic Pi / SuperCollider の環境構築
-- [ ] oscsend の導入確認
-- [ ] 最小プロトタイプの作成（状態検出 + OSC + オーディオ）
+- `node-speaker` や `web-audio-api` (npm) でヘッドレス再生
+- ブラウザ不要
+- ライブラリの成熟度に不安がある
+
+#### B6. CLI オーディオツール (sox / ffplay / mpv)
+
+- `sox` の `play` コマンドでループ再生
+- 複数プロセスで重ね再生し、片方を kill / pause で制御
+- 最もシンプルだがギャップレスやフェードの制御が荒い
+- `mpv --loop` + IPC ソケットでボリューム制御する手もある
+
+#### B7. Pure Data (Pd)
+
+- パッチで音声処理を組む
+- OSC / MIDI で制御可能
+- GUI なし (pd-vanilla -nogui) でも動く
+- オーディオプログラミングの知識が要る
+
+---
+
+### C. シグナル伝達の案
+
+#### C1. OSC (Open Sound Control)
+
+- UDP ベースで低レイテンシ
+- `oscsend` (liblo) でシェルから送信可能
+- SuperCollider / Sonic Pi / Pd が標準で受信できる
+
+#### C2. UNIX シグナル
+
+- `kill -USR1 <pid>` でオーディオプロセスに通知
+- 追加ライブラリ不要
+- 2状態（USR1 = on, USR2 = off）程度なら十分
+
+#### C3. UNIX ソケット / named pipe (FIFO)
+
+- ファイルシステム上のソケットやパイプで通信
+- `echo 1 > /tmp/claude-audio-pipe` のように使える
+- 低レイテンシ
+
+#### C4. ファイル監視 (inotify / fswatch)
+
+- 状態ファイルの変更をオーディオ側が監視
+- macOS では `fswatch` が使える
+- 若干のレイテンシ
+
+#### C5. HTTP / WebSocket
+
+- オーディオ側が HTTP サーバーを立てて状態を受ける
+- Web Audio API 案 (B4) と相性がいい
+- オーバーヘッドは大きい
+
+#### C6. stdin / パイプ
+
+- オーディオプロセスの stdin に状態を流す
+- `echo 1 | audio_process` 的に使う
+- プロセスの起動方法に制約がある
+
+---
+
+### D. 音楽的な工夫の案
+
+#### D1. クオンタイズ
+
+- 状態変化を次の拍頭（または小節頭）まで遅延させて切り替え
+- 音楽的に自然になる
+
+#### D2. フェードイン / フェードアウト
+
+- melody のオン・オフをバツッと切り替えず、短いフェード (100-500ms) をかける
+- ぶつ切り感を軽減
+
+#### D3. フィルター変化
+
+- melody を常に鳴らしておき、idle 時はローパスフィルタで聞こえなくする
+- thinking 時にフィルタを開く → なめらかな遷移
+
+#### D4. 段階的な変化
+
+- thinking が長く続くほど音が厚くなる（パッド追加、ハイハットが入る等）
+- tool use 中は別の音色にする
+
+#### D5. ランダム性
+
+- melody のフレーズに適度なランダム性を入れて飽きにくくする
+- スケール内の音をランダムに選ぶ等
+
+---
+
+### E. 全体構成の案
+
+#### E1. Sonic Pi 中心
+
+- Sonic Pi で音声生成 + ループ + OSC 受信を全部やる
+- Claude Code hooks → oscsend → Sonic Pi
+- 最もオールインワン
+
+#### E2. Python スクリプト一本
+
+- Python で WAV ループ再生 + 状態受信 (stdin or UNIX signal) を全部やる
+- Claude Code hooks → signal/file → Python
+- 依存が少ない
+
+#### E3. ブラウザ UI
+
+- ブラウザで Web Audio API + WebSocket
+- 別途 WebSocket サーバーを立てるか、Claude Code hooks がブラウザに直接通知
+- ビジュアライザーも付けられる
+
+#### E4. mpv + IPC
+
+- `mpv --loop --input-ipc-server=/tmp/mpv.sock` で WAV ループ再生
+- `echo '{"command":["set_property","volume",0]}' | socat - /tmp/mpv.sock` で制御
+- 既存ツールの組み合わせだけで済む
+
+#### E5. 複数プロセス + シェルスクリプト
+
+- バックグラウンドで `play kick_bass.wav repeat` を流しつつ
+- 状態変化で `play melody.wav` を開始/停止
+- 最も雑だが最も早く試せる
+
+---
+
+## 技術的な懸念事項
+
+1. **応答完了の確実な検出** — 最大のボトルネック
+2. **ギャップレスループ** — 普通の CLI ツールだと繋ぎ目が途切れがち
+3. **レイテンシ** — 状態遷移からオーディオ変化までの遅延
+4. **音楽的な自然さ** — 拍に合わない切り替えは不快
+5. **リソース消費** — 常時オーディオ再生の CPU / メモリ負荷
+6. **環境依存** — macOS / Linux での挙動差
+
+## 未調査事項
+
+- [ ] Claude Code の hook で応答完了を検出できるイベントがあるか
+- [ ] cmux の拡張ポイント
+- [ ] mpv IPC のレイテンシ
+- [ ] sounddevice でギャップレスループが可能か
+- [ ] macOS での fswatch のレイテンシ
