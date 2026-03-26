@@ -59,6 +59,17 @@ Add the following `hooks` to your Claude Code config (`.claude/settings.json`):
 
 All communication stays on localhost. No data is sent to the internet.
 
+## Troubleshooting
+
+**No sound**
+Click the power button to start audio. This is required every time the page loads due to the browser's Web Audio API policy.
+
+**PLUGGED indicator is red**
+The server is not running. Run `npm start` and check that the port is not in use by another process.
+
+**State does not change (stuck on YOURTURN/OPPONENT)**
+Make sure the Claude Code hooks are configured in `.claude/settings.json`. See the Setup section above.
+
 ## Port
 
 The default port is **43819** (`0xAB2B` for agent-b2b).
