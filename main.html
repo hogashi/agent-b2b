@@ -65,6 +65,7 @@
   .sequencer .seq-label { text-align: right; color: #aaa; font-size: 0.8rem; text-transform: uppercase; padding-right: 0.4rem; }
   .sequencer .seq-step { width: 30px; height: 30px; border: 1px solid #444; background: #222; cursor: pointer; border-radius: 4px; margin: 0; box-sizing: border-box; }
   .sequencer .seq-step.on { background: #5a8; border-color: #6b9; }
+  .sequencer .seq-step:focus { outline: 2px solid #5a8; outline-offset: -2px; }
   .sequencer .seq-step.playing { box-shadow: 0 0 4px #fff; }
   .sequencer .beat-marker { text-align: center; color: #aaa; font-size: 0.7rem; }
   .settings-backup .backup-buttons { margin-top: 0.2rem; display: flex; gap: 0.5rem; }
@@ -157,10 +158,15 @@ const patterns = {
   melody: [0,0,1,0, 0,0,0,1, 0,0,0,1, 0,0,1,0],
 };
 
+let seqCursorRow = 0;
+let seqCursorCol = 0;
+
 function buildSeqGrid() {
   const grid = document.getElementById('seqGrid');
+  grid.setAttribute('role', 'grid');
+  grid.setAttribute('aria-label', 'Step sequencer');
   grid.innerHTML = '';
-  // beat markers row: empty cell for label column, then 16 markers
+  // beat markers row
   const emptyLabel = document.createElement('div');
   grid.appendChild(emptyLabel);
   for (let i = 0; i < STEPS; i++) {
@@ -170,24 +176,53 @@ function buildSeqGrid() {
     grid.appendChild(m);
   }
   // track rows
-  for (const track of seqTracks) {
+  for (let r = 0; r < seqTracks.length; r++) {
+    const track = seqTracks[r];
     const label = document.createElement('div');
     label.className = 'seq-label';
     label.textContent = track;
     grid.appendChild(label);
-    for (let i = 0; i < STEPS; i++) {
+    for (let c = 0; c < STEPS; c++) {
       const step = document.createElement('div');
-      step.className = 'seq-step' + (patterns[track][i] ? ' on' : '');
+      step.className = 'seq-step' + (patterns[track][c] ? ' on' : '');
       step.dataset.track = track;
-      step.dataset.step = i;
-      step.onclick = () => {
-        patterns[track][i] = patterns[track][i] ? 0 : 1;
+      step.dataset.step = c;
+      step.dataset.row = r;
+      step.dataset.col = c;
+      step.setAttribute('role', 'checkbox');
+      step.setAttribute('aria-checked', patterns[track][c] ? 'true' : 'false');
+      step.setAttribute('aria-label', `${track} step ${c + 1}`);
+      step.tabIndex = (r === seqCursorRow && c === seqCursorCol) ? 0 : -1;
+      const toggleStep = () => {
+        patterns[track][c] = patterns[track][c] ? 0 : 1;
         step.classList.toggle('on');
+        step.setAttribute('aria-checked', patterns[track][c] ? 'true' : 'false');
         saveSettings();
+      };
+      step.onclick = toggleStep;
+      step.onkeydown = (e) => {
+        if (e.code === 'Space' || e.code === 'Enter') {
+          e.preventDefault();
+          toggleStep();
+        } else if (e.code === 'ArrowRight' || e.code === 'ArrowLeft' || e.code === 'ArrowDown' || e.code === 'ArrowUp') {
+          e.preventDefault();
+          moveSeqCursor(e.code);
+        }
       };
       grid.appendChild(step);
     }
   }
+}
+
+function moveSeqCursor(code) {
+  const prev = document.querySelector(`.seq-step[data-row="${seqCursorRow}"][data-col="${seqCursorCol}"]`);
+  if (code === 'ArrowRight') seqCursorCol = (seqCursorCol + 1) % STEPS;
+  else if (code === 'ArrowLeft') seqCursorCol = (seqCursorCol - 1 + STEPS) % STEPS;
+  else if (code === 'ArrowDown') seqCursorRow = (seqCursorRow + 1) % seqTracks.length;
+  else if (code === 'ArrowUp') seqCursorRow = (seqCursorRow - 1 + seqTracks.length) % seqTracks.length;
+  const next = document.querySelector(`.seq-step[data-row="${seqCursorRow}"][data-col="${seqCursorCol}"]`);
+  if (prev) prev.tabIndex = -1;
+  if (next) { next.tabIndex = 0; next.focus(); }
 }
 buildSeqGrid();
 document.querySelector('.sequencer').addEventListener('toggle', saveSettings);
