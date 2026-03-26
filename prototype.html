@@ -59,10 +59,11 @@
 </head>
 <body>
 
-<div>
-  <button id="powerBtn" onclick="togglePower()">&#x23FB;</button>
+<div style="display: grid; grid-template-columns: auto auto; grid-template-rows: auto auto; gap: 0 0.8rem; justify-content: center;">
+  <div id="agentState" style="grid-column: 1; grid-row: 1; text-align: center;">OFF</div>
+  <button id="powerBtn" onclick="togglePower()" style="grid-column: 1; grid-row: 2; align-self: center;">&#x23FB;</button>
+  <span style="grid-column: 2; grid-row: 2; align-self: center; font-size: 1.8rem; color: #aaa; letter-spacing: 0.1em;">AGENT-B2B</span>
 </div>
-<div id="agentState">OFF</div>
 <div class="toggle-row">
   <div id="wsIndicator" class="ws-indicator">
     <span>PLUGGED</span>
