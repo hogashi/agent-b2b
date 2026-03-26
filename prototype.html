@@ -262,13 +262,13 @@ function playBeat(time, count) {
     playKick(time);
   }
   if (patterns.bass[step] && isTrackActive('bass')) {
-    playBass(time, count);
+    playBass(time);
   }
   if (patterns.hihat[step] && isTrackActive('hihat')) {
     playHihat(time);
   }
   if (patterns.melody[step] && isTrackActive('melody')) {
-    playMelody(time, count);
+    playMelody(time);
   }
 }
 
@@ -285,7 +285,7 @@ function playKick(time) {
   osc.stop(time + 0.15);
 }
 
-function playBass(time, count) {
+function playBass(time) {
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
   osc.type = 'sawtooth';
@@ -337,7 +337,7 @@ function playHihat(time) {
 // minor pentatonic: A C D E G
 const MELODY_NOTES = [220, 261.6, 293.7, 329.6, 392, 440, 523.3, 587.3];
 
-function playMelody(time, count) {
+function playMelody(time) {
   // 確率的に音を出す (全部鳴らすとうるさい)
   if (Math.random() > 0.4) return;
 
