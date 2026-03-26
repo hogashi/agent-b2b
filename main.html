@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>agent-b2b prototype</title>
+<title>AGENT-B2B - Back-to-back beats with your AI agent</title>
 <style>
   body {
     font-family: monospace;
@@ -47,13 +47,14 @@
   .bpm-control { margin-top: 1rem; }
   .bpm-control label { color: #aaa; margin-right: 0.5rem; }
   .bpm-control input[type=number] { width: 4em; font-family: monospace; font-size: 1rem; background: #222; color: #eee; border: 1px solid #555; border-radius: 4px; padding: 0.2rem 0.4rem; text-align: center; }
-  .bpm-control input[type=range] { width: 160px; vertical-align: middle; margin-left: 0.5rem; }
+  .bpm-control input[type=range] { width: 160px; vertical-align: middle; margin-left: 0.5rem; accent-color: #5a8; }
   .mixer { margin-top: 1rem; text-transform: uppercase; }
   .mixer table { border-collapse: collapse; }
   .mixer th, .mixer td { padding: 0.2rem 0.6rem; text-align: center; }
   .mixer th { color: #aaa; }
   .mixer td:first-child { text-align: right; color: #aaa; }
-  .mixer input[type=range] { width: 140px; vertical-align: middle; }
+  .mixer input[type=range] { width: 140px; vertical-align: middle; accent-color: #5a8; }
+  .mixer input[type=checkbox] { accent-color: #5a8; }
   .panel { margin-top: 0.5rem; width: 100%; max-width: 600px; }
   .panel summary { color: #aaa; cursor: pointer; text-transform: uppercase; font-size: 0.9rem; }
   .sequencer .seq-grid { padding-left: 20px; display: grid; grid-template-columns: 60px repeat(16, 30px); gap: 0; margin-top: 0.5rem; align-items: center; }
