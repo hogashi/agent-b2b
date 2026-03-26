@@ -71,6 +71,7 @@
   .settings-backup button { font-size: 0.8rem; padding: 0.3rem 0.8rem; }
   .settings-backup .btn-danger { color: #c66; border-color: #c66; }
   .hidden { display: none; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
   .settings-backup .settings-content { padding-left: 20px; }
   .settings-backup .settings-section { color: #888; font-size: 0.9rem; text-transform: uppercase; margin-top: 0.5rem; }
 </style>
@@ -85,8 +86,9 @@
 <div class="toggle-row">
   <div id="wsIndicator" class="ws-indicator">
     <span>PLUGGED</span>
-    <svg class="ws-connected" viewBox="0 0 24 24"><path d="M13 2L3 14h8l-1 8 10-12h-8z"/></svg>
-    <svg class="ws-disconnected" viewBox="0 0 24 24"><path d="M12 2L1 21h22zM12 15h.01M12 9v4"/><line x1="12" y1="9" x2="12" y2="13" stroke="#a33" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1"/></svg>
+    <svg class="ws-connected" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L3 14h8l-1 8 10-12h-8z"/></svg>
+    <svg class="ws-disconnected" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2L1 21h22zM12 15h.01M12 9v4"/><line x1="12" y1="9" x2="12" y2="13" stroke="#a33" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1"/></svg>
+    <span class="sr-only ws-status-text" aria-live="polite">disconnected</span>
   </div>
   <button id="toggleBtn" onclick="toggle()" disabled aria-live="polite">YOURTURN</button>
 </div>
@@ -417,11 +419,13 @@ document.addEventListener('keydown', (e) => {
 const WS_URL = `ws://${location.host}`;
 let ws = null;
 const wsIndicator = document.getElementById('wsIndicator');
+const wsStatusText = wsIndicator.querySelector('.ws-status-text');
 
 function connectWs() {
   ws = new WebSocket(WS_URL);
   ws.onopen = () => {
     wsIndicator.classList.add('connected');
+    wsStatusText.textContent = 'connected';
   };
   ws.onmessage = (e) => {
     const data = JSON.parse(e.data);
@@ -431,6 +435,7 @@ function connectWs() {
   };
   ws.onclose = () => {
     wsIndicator.classList.remove('connected');
+    wsStatusText.textContent = 'disconnected';
     setTimeout(connectWs, 3000);
   };
   ws.onerror = () => ws.close();
