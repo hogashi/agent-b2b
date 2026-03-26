@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>agent-b2b prototype</title>
+<style>
+  body {
+    font-family: monospace;
+    background: #111;
+    color: #eee;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+  }
+  #state {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+  button {
+    font-family: monospace;
+    font-size: 1.2rem;
+    padding: 0.8rem 2rem;
+    margin: 0.5rem;
+    cursor: pointer;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background: #222;
+    color: #eee;
+  }
+  button:hover { background: #333; }
+  #startBtn { background: #2a5; color: #fff; }
+  #toggleBtn { background: #25a; color: #fff; }
+  #toggleBtn.thinking { background: #a52; }
+  #info { margin-top: 2rem; color: #888; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+
+<div id="state">stopped</div>
+<div>
+  <button id="startBtn" onclick="start()">Start</button>
+  <button id="toggleBtn" onclick="toggle()" disabled>idle</button>
+</div>
+<div id="info">
+  Start を押してから toggle で idle / thinking を切り替え
+</div>
+
+<script>
+let audioCtx = null;
+let isPlaying = false;
+let isThinking = false;
+let nextBeatTime = 0;
+let timerID = null;
+
+const BPM = 128;
+const BEAT = 60 / BPM; // 1拍の長さ (秒)
+const SCHEDULE_AHEAD = 0.1; // 先読み秒数
+
+function start() {
+  if (isPlaying) return;
+  audioCtx = new AudioContext();
+  isPlaying = true;
+  nextBeatTime = audioCtx.currentTime + 0.05;
+  scheduler();
+  document.getElementById('state').textContent = 'idle';
+  document.getElementById('toggleBtn').disabled = false;
+  document.getElementById('startBtn').disabled = true;
+}
+
+let beatCount = 0;
+
+function scheduler() {
+  while (nextBeatTime < audioCtx.currentTime + SCHEDULE_AHEAD) {
+    playBeat(nextBeatTime, beatCount);
+    beatCount++;
+    nextBeatTime += BEAT / 2; // 8分音符単位でスケジュール
+  }
+  timerID = setTimeout(scheduler, 25);
+}
+
+function playBeat(time, count) {
+  // kick: 4つ打ち (0, 4, 8, 12 ... = 毎拍)
+  if (count % 4 === 0) {
+    playKick(time);
+  }
+
+  // bass: 8分音符でルート音
+  if (count % 2 === 0) {
+    playBass(time);
+  }
+
+  // melody: thinking 時のみ、16分音符的に
+  if (isThinking) {
+    playMelody(time, count);
+  }
+}
+
+function playKick(time) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(150, time);
+  osc.frequency.exponentialRampToValueAtTime(30, time + 0.08);
+  gain.gain.setValueAtTime(0.8, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(time);
+  osc.stop(time + 0.15);
+}
+
+function playBass(time) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(55, time); // A1
+  gain.gain.setValueAtTime(0.15, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
+
+  // simple low-pass
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(300, time);
+
+  osc.connect(filter).connect(gain).connect(audioCtx.destination);
+  osc.start(time);
+  osc.stop(time + 0.12);
+}
+
+// minor pentatonic: A C D E G
+const MELODY_NOTES = [220, 261.6, 293.7, 329.6, 392, 440, 523.3, 587.3];
+
+function playMelody(time, count) {
+  // 確率的に音を出す (全部鳴らすとうるさい)
+  if (Math.random() > 0.4) return;
+
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'square';
+  const note = MELODY_NOTES[Math.floor(Math.random() * MELODY_NOTES.length)];
+  osc.frequency.setValueAtTime(note, time);
+  gain.gain.setValueAtTime(0.08, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
+
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(1500, time);
+
+  osc.connect(filter).connect(gain).connect(audioCtx.destination);
+  osc.start(time);
+  osc.stop(time + 0.1);
+}
+
+function toggle() {
+  isThinking = !isThinking;
+  document.getElementById('state').textContent = isThinking ? 'thinking' : 'idle';
+  const btn = document.getElementById('toggleBtn');
+  btn.textContent = isThinking ? 'thinking' : 'idle';
+  btn.classList.toggle('thinking', isThinking);
+}
+
+// キーボードでも切り替え
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (!isPlaying) start();
+    else toggle();
+  }
+});
+</script>
+</body>
+</html>
