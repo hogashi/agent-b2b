@@ -55,9 +55,14 @@ Add the following `hooks` to your Claude Code config (`.claude/settings.json`):
 }
 ```
 
-**Note:** You need to click the power button once to start audio, due to the browser's Web Audio API policy requiring user interaction.
-
 All communication stays on localhost. No data is sent to the internet.
+
+## Usage
+
+1. **Power on** — Click the power button to start audio. This is required each time the page loads.
+2. **Use Claude Code** — While Claude is thinking, the melody layer kicks in. When it's your turn, only kick, bass, and hihat play. You can customize which tracks play in each state using the checkboxes.
+3. (Optional) **Adjust** — Change the volume of each track, tweak the BPM, or edit the beat pattern in the sequencer.
+4. (Optional) **Share** — Export your settings as JSON to back up or share with friends. You can also reset everything to defaults.
 
 ## Troubleshooting
 
