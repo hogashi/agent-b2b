@@ -98,10 +98,10 @@ function playBeat(time, count) {
     playKick(time);
   }
 
-  // bass: 8分音符でルート音 (一時的にミュート)
-  // if (count % 2 === 0) {
-  //   playBass(time);
-  // }
+  // bass: 8分音符でルート音
+  if (count % 2 === 0) {
+    playBass(time);
+  }
 
   // melody: thinking 時のみ、16分音符的に
   if (isThinking) {
@@ -127,8 +127,8 @@ function playBass(time) {
   const gain = audioCtx.createGain();
   osc.type = 'sawtooth';
   osc.frequency.setValueAtTime(55, time); // A1
-  gain.gain.setValueAtTime(0.15, time);
-  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
+  gain.gain.setValueAtTime(0.4, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
 
   // simple low-pass
   const filter = audioCtx.createBiquadFilter();
