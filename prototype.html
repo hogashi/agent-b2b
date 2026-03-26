@@ -357,9 +357,6 @@ function loadSettings() {
     }
   }
 
-  // 電源状態を復元
-  if (data.powerOn) start();
-
   // スライダーに反映
   document.querySelectorAll('.sliders input[type=range]').forEach(el => {
     const name = el.closest('div').querySelector('label').textContent;
