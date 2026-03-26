@@ -52,6 +52,35 @@ Add the following `hooks` to your Claude Code config (`.claude/settings.json`):
 }
 ```
 
+You can optionally add `PreToolUse` and `PostToolUse` hooks to detect tool approval prompts. This switches the state to YOURTURN while waiting for approval and back to OPPONENT once approved. Add or remove these based on your preference:
+
+```json
+{
+  "PreToolUse": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "curl -s -X POST http://localhost:43819/idle",
+          "timeout": 5
+        }
+      ]
+    }
+  ],
+  "PostToolUse": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "curl -s -X POST http://localhost:43819/thinking",
+          "timeout": 5
+        }
+      ]
+    }
+  ]
+}
+```
+
 All communication stays on localhost after installation. No data is sent to the internet.
 
 ### Alternative: clone and run
