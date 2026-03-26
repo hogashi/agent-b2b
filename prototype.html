@@ -43,22 +43,18 @@
   .ws-indicator .ws-disconnected { display: block; fill: #a33; }
   .ws-indicator.connected .ws-connected { display: block; }
   .ws-indicator.connected .ws-disconnected { display: none; }
-  #toggleBtn { background: #25a; color: #fff; }
-  #toggleBtn.thinking { background: #a52; }
+  #toggleBtn { font-size: 1rem; padding: 0.5rem 1.2rem; background: transparent; color: #5a8; border: 1px solid #5a8; }
+  #toggleBtn.thinking { color: #a52; border-color: #a52; }
   .bpm-control { margin-top: 1rem; }
   .bpm-control label { color: #aaa; margin-right: 0.5rem; }
   .bpm-control input[type=number] { width: 4em; font-family: monospace; font-size: 1rem; background: #222; color: #eee; border: 1px solid #555; border-radius: 4px; padding: 0.2rem 0.4rem; text-align: center; }
   .bpm-control input[type=range] { width: 160px; vertical-align: middle; margin-left: 0.5rem; }
-  .section-label { color: #aaa; font-size: 1rem; margin-bottom: 0.3rem; }
-  .sliders { margin-top: 1rem; text-transform: uppercase; }
-  .sliders div { margin: 0.3rem 0; }
-  .sliders input { width: 160px; vertical-align: middle; }
-  .sliders label { color: #aaa; display: inline-block; width: 80px; text-align: right; margin-right: 0.5rem; }
-  .state-config { margin-top: 1rem; text-transform: uppercase; }
-  .state-config table { border-collapse: collapse; }
-  .state-config th, .state-config td { padding: 0.2rem 0.8rem; text-align: center; }
-  .state-config th { color: #aaa; }
-  .state-config td:first-child { text-align: right; color: #aaa; }
+  .mixer { margin-top: 1rem; text-transform: uppercase; }
+  .mixer table { border-collapse: collapse; }
+  .mixer th, .mixer td { padding: 0.2rem 0.6rem; text-align: center; }
+  .mixer th { color: #aaa; }
+  .mixer td:first-child { text-align: right; color: #aaa; }
+  .mixer input[type=range] { width: 140px; vertical-align: middle; }
 </style>
 </head>
 <body>
@@ -78,23 +74,14 @@
 <div class="bpm-control">
   <label>BPM</label><input id="bpmNumber" type="number" min="60" max="240" value="128" oninput="setBpm(this.value)"><input id="bpmSlider" type="range" min="60" max="240" value="128" oninput="setBpm(this.value)">
 </div>
-<div class="sliders">
-  <div class="section-label">- VOLUME -</div>
-  <div>
-    <div><label>master</label><input type="range" min="0" max="100" value="50" oninput="setGain('master', this.value)"></div>
-    <div><label>kick</label><input type="range" min="0" max="100" value="100" oninput="setGain('kick', this.value)"></div>
-    <div><label>bass</label><input type="range" min="0" max="100" value="100" oninput="setGain('bass', this.value)"></div>
-    <div><label>hihat</label><input type="range" min="0" max="100" value="100" oninput="setGain('hihat', this.value)"></div>
-    <div><label>melody</label><input type="range" min="0" max="100" value="100" oninput="setGain('melody', this.value)"></div>
-  </div>
-</div>
-<div class="state-config">
+<div class="mixer">
   <table>
-    <tr><th>- TRACKS -</th><th>YOURTURN</th><th>OPPONENT</th></tr>
-    <tr><td>kick</td><td><input type="checkbox" checked onchange="setTrackState('kick','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('kick','thinking',this.checked)"></td></tr>
-    <tr><td>bass</td><td><input type="checkbox" checked onchange="setTrackState('bass','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('bass','thinking',this.checked)"></td></tr>
-    <tr><td>hihat</td><td><input type="checkbox" checked onchange="setTrackState('hihat','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('hihat','thinking',this.checked)"></td></tr>
-    <tr><td>melody</td><td><input type="checkbox" onchange="setTrackState('melody','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('melody','thinking',this.checked)"></td></tr>
+    <tr><th></th><th>- VOLUME -</th><th colspan="2">- TRACKS -</th></tr>
+    <tr><td>MASTER</td><td><input type="range" min="0" max="100" value="50" oninput="setGain('master', this.value)"></td><th>YOURTURN</th><th>OPPONENT</th></tr>
+    <tr><td>KICK</td><td><input type="range" min="0" max="100" value="100" oninput="setGain('kick', this.value)"></td><td><input type="checkbox" checked onchange="setTrackState('kick','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('kick','thinking',this.checked)"></td></tr>
+    <tr><td>BASS</td><td><input type="range" min="0" max="100" value="100" oninput="setGain('bass', this.value)"></td><td><input type="checkbox" checked onchange="setTrackState('bass','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('bass','thinking',this.checked)"></td></tr>
+    <tr><td>HIHAT</td><td><input type="range" min="0" max="100" value="100" oninput="setGain('hihat', this.value)"></td><td><input type="checkbox" checked onchange="setTrackState('hihat','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('hihat','thinking',this.checked)"></td></tr>
+    <tr><td>MELODY</td><td><input type="range" min="0" max="100" value="100" oninput="setGain('melody', this.value)"></td><td><input type="checkbox" onchange="setTrackState('melody','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('melody','thinking',this.checked)"></td></tr>
   </table>
 </div>
 
@@ -383,20 +370,21 @@ function loadSettings() {
 
   if (data.bpm) setBpm(data.bpm);
 
-  // スライダーに反映
-  document.querySelectorAll('.sliders input[type=range]').forEach(el => {
-    const name = el.closest('div').querySelector('label').textContent;
-    if (gainValues[name] !== undefined) el.value = gainValues[name];
-  });
-
-  // チェックボックスに反映
-  document.querySelectorAll('.state-config tr').forEach(row => {
+  // テーブルに反映
+  document.querySelectorAll('.mixer tr').forEach(row => {
     const cells = row.querySelectorAll('td');
-    if (cells.length < 3) return;
-    const track = cells[0].textContent;
-    if (!trackEnabled[track]) return;
-    cells[1].querySelector('input').checked = trackEnabled[track].idle;
-    cells[2].querySelector('input').checked = trackEnabled[track].thinking;
+    if (cells.length === 0) return;
+    const name = cells[0].textContent.toLowerCase();
+    // スライダー
+    const slider = cells[1] && cells[1].querySelector('input[type=range]');
+    if (slider && gainValues[name] !== undefined) slider.value = gainValues[name];
+    // チェックボックス
+    if (trackEnabled[name]) {
+      const cb1 = cells[2] && cells[2].querySelector('input');
+      const cb2 = cells[3] && cells[3].querySelector('input');
+      if (cb1) cb1.checked = trackEnabled[name].idle;
+      if (cb2) cb2.checked = trackEnabled[name].thinking;
+    }
   });
 }
 
