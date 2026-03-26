@@ -39,6 +39,11 @@
   .sliders div { margin: 0.3rem 0; }
   .sliders input { width: 160px; vertical-align: middle; }
   .sliders label { color: #aaa; display: inline-block; width: 80px; text-align: right; margin-right: 0.5rem; }
+  .state-config { margin-top: 1rem; }
+  .state-config table { border-collapse: collapse; }
+  .state-config th, .state-config td { padding: 0.2rem 0.8rem; text-align: center; }
+  .state-config th { color: #aaa; }
+  .state-config td:first-child { text-align: right; color: #aaa; }
 </style>
 </head>
 <body>
@@ -52,7 +57,17 @@
   <div><label>master</label><input type="range" min="0" max="100" value="50" oninput="setGain('master', this.value)"></div>
   <div><label>kick</label><input type="range" min="0" max="100" value="100" oninput="setGain('kick', this.value)"></div>
   <div><label>bass</label><input type="range" min="0" max="100" value="100" oninput="setGain('bass', this.value)"></div>
+  <div><label>hihat</label><input type="range" min="0" max="100" value="100" oninput="setGain('hihat', this.value)"></div>
   <div><label>melody</label><input type="range" min="0" max="100" value="100" oninput="setGain('melody', this.value)"></div>
+</div>
+<div class="state-config">
+  <table>
+    <tr><th></th><th>idle</th><th>thinking</th></tr>
+    <tr><td>kick</td><td><input type="checkbox" checked onchange="setTrackState('kick','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('kick','thinking',this.checked)"></td></tr>
+    <tr><td>bass</td><td><input type="checkbox" checked onchange="setTrackState('bass','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('bass','thinking',this.checked)"></td></tr>
+    <tr><td>hihat</td><td><input type="checkbox" checked onchange="setTrackState('hihat','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('hihat','thinking',this.checked)"></td></tr>
+    <tr><td>melody</td><td><input type="checkbox" onchange="setTrackState('melody','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('melody','thinking',this.checked)"></td></tr>
+  </table>
 </div>
 <div id="info">
   Start を押してから toggle で idle / thinking を切り替え
@@ -62,10 +77,26 @@
 let masterGain = null;
 let kickGain = null;
 let bassGain = null;
+let hihatGain = null;
 let melodyGain = null;
 let audioCtx = null;
 let isPlaying = false;
 let isThinking = false;
+const trackEnabled = {
+  kick:   { idle: true, thinking: true },
+  bass:   { idle: true, thinking: true },
+  hihat:  { idle: true, thinking: true },
+  melody: { idle: false, thinking: true },
+};
+
+function setTrackState(track, state, enabled) {
+  trackEnabled[track][state] = enabled;
+}
+
+function isTrackActive(track) {
+  const state = isThinking ? 'thinking' : 'idle';
+  return trackEnabled[track][state];
+}
 let nextBeatTime = 0;
 let timerID = null;
 
@@ -83,6 +114,8 @@ function start() {
   kickGain.connect(masterGain);
   bassGain = audioCtx.createGain();
   bassGain.connect(masterGain);
+  hihatGain = audioCtx.createGain();
+  hihatGain.connect(masterGain);
   melodyGain = audioCtx.createGain();
   melodyGain.connect(masterGain);
   isPlaying = true;
@@ -106,17 +139,22 @@ function scheduler() {
 
 function playBeat(time, count) {
   // kick: 4つ打ち (0, 4, 8, 12 ... = 毎拍)
-  if (count % 4 === 0) {
+  if (count % 4 === 0 && isTrackActive('kick')) {
     playKick(time);
   }
 
   // bass: 8分音符でルート音
-  if (count % 2 === 0) {
+  if (count % 2 === 0 && isTrackActive('bass')) {
     playBass(time);
   }
 
-  // melody: thinking 時のみ、16分音符的に
-  if (isThinking) {
+  // hihat: 8分音符の裏拍
+  if (count % 2 === 1 && isTrackActive('hihat')) {
+    playHihat(time);
+  }
+
+  // melody: 16分音符的に
+  if (isTrackActive('melody')) {
     playMelody(time, count);
   }
 }
@@ -152,6 +190,29 @@ function playBass(time) {
   osc.stop(time + 0.12);
 }
 
+function playHihat(time) {
+  const bufferSize = audioCtx.sampleRate * 0.05;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = Math.random() * 2 - 1;
+  }
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = buffer;
+
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'highpass';
+  filter.frequency.setValueAtTime(8000, time);
+
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(0.3, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.04);
+
+  noise.connect(filter).connect(gain).connect(hihatGain);
+  noise.start(time);
+  noise.stop(time + 0.05);
+}
+
 // minor pentatonic: A C D E G
 const MELODY_NOTES = [220, 261.6, 293.7, 329.6, 392, 440, 523.3, 587.3];
 
@@ -176,7 +237,7 @@ function playMelody(time, count) {
   osc.stop(time + 0.1);
 }
 
-const gainNodes = { master: () => masterGain, kick: () => kickGain, bass: () => bassGain, melody: () => melodyGain };
+const gainNodes = { master: () => masterGain, kick: () => kickGain, bass: () => bassGain, hihat: () => hihatGain, melody: () => melodyGain };
 function setGain(name, val) {
   const node = gainNodes[name]();
   if (node) node.gain.value = val / 100;
