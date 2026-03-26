@@ -35,6 +35,9 @@
   #toggleBtn { background: #25a; color: #fff; }
   #toggleBtn.thinking { background: #a52; }
   #info { margin-top: 2rem; color: #888; font-size: 0.9rem; }
+  #volume { margin-top: 1rem; }
+  #volume input { width: 200px; vertical-align: middle; }
+  #volume label { color: #aaa; }
 </style>
 </head>
 <body>
@@ -44,11 +47,16 @@
   <button id="startBtn" onclick="start()">Start</button>
   <button id="toggleBtn" onclick="toggle()" disabled>idle</button>
 </div>
+<div id="volume">
+  <label>volume: <span id="volValue">50</span>%</label><br>
+  <input type="range" min="0" max="100" value="50" oninput="setVolume(this.value)">
+</div>
 <div id="info">
   Start を押してから toggle で idle / thinking を切り替え
 </div>
 
 <script>
+let masterGain = null;
 let audioCtx = null;
 let isPlaying = false;
 let isThinking = false;
@@ -62,6 +70,9 @@ const SCHEDULE_AHEAD = 0.1; // 先読み秒数
 function start() {
   if (isPlaying) return;
   audioCtx = new AudioContext();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.5;
+  masterGain.connect(audioCtx.destination);
   isPlaying = true;
   nextBeatTime = audioCtx.currentTime + 0.05;
   scheduler();
@@ -87,10 +98,10 @@ function playBeat(time, count) {
     playKick(time);
   }
 
-  // bass: 8分音符でルート音
-  if (count % 2 === 0) {
-    playBass(time);
-  }
+  // bass: 8分音符でルート音 (一時的にミュート)
+  // if (count % 2 === 0) {
+  //   playBass(time);
+  // }
 
   // melody: thinking 時のみ、16分音符的に
   if (isThinking) {
@@ -102,11 +113,11 @@ function playKick(time) {
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
   osc.type = 'sine';
-  osc.frequency.setValueAtTime(150, time);
-  osc.frequency.exponentialRampToValueAtTime(30, time + 0.08);
-  gain.gain.setValueAtTime(0.8, time);
-  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
-  osc.connect(gain).connect(audioCtx.destination);
+  osc.frequency.setValueAtTime(80, time);
+  osc.frequency.exponentialRampToValueAtTime(30, time + 0.12);
+  gain.gain.setValueAtTime(0.6, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.25);
+  osc.connect(gain).connect(masterGain);
   osc.start(time);
   osc.stop(time + 0.15);
 }
@@ -124,7 +135,7 @@ function playBass(time) {
   filter.type = 'lowpass';
   filter.frequency.setValueAtTime(300, time);
 
-  osc.connect(filter).connect(gain).connect(audioCtx.destination);
+  osc.connect(filter).connect(gain).connect(masterGain);
   osc.start(time);
   osc.stop(time + 0.12);
 }
@@ -148,9 +159,15 @@ function playMelody(time, count) {
   filter.type = 'lowpass';
   filter.frequency.setValueAtTime(1500, time);
 
-  osc.connect(filter).connect(gain).connect(audioCtx.destination);
+  osc.connect(filter).connect(gain).connect(masterGain);
   osc.start(time);
   osc.stop(time + 0.1);
+}
+
+function setVolume(val) {
+  const v = val / 100;
+  if (masterGain) masterGain.gain.value = v;
+  document.getElementById('volValue').textContent = val;
 }
 
 function toggle() {
