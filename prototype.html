@@ -6,6 +6,7 @@
 <style>
   body {
     font-family: monospace;
+    font-size: 1rem;
     background: #111;
     color: #eee;
     display: flex;
@@ -33,20 +34,20 @@
   button:hover { background: #333; }
   #powerBtn { font-size: 2rem; width: 3.5rem; height: 3.5rem; padding: 0; border-radius: 50%; background: #333; border: 2px solid #555; }
   #powerBtn.on { background: #2a5; border-color: #3b6; }
-  #agentState { font-size: 1rem; color: #888; margin-top: 0.3rem; }
+  #agentState { font-size: 1rem; color: #888; margin-top: 0.1rem; }
   #agentState.on { color: #6a6; }
   #toggleBtn { background: #25a; color: #fff; }
   #toggleBtn.thinking { background: #a52; }
-  #info { margin-top: 2rem; color: #888; font-size: 0.9rem; }
   .bpm-control { margin-top: 1rem; }
   .bpm-control label { color: #aaa; margin-right: 0.5rem; }
   .bpm-control input[type=number] { width: 4em; font-family: monospace; font-size: 1rem; background: #222; color: #eee; border: 1px solid #555; border-radius: 4px; padding: 0.2rem 0.4rem; text-align: center; }
   .bpm-control input[type=range] { width: 160px; vertical-align: middle; margin-left: 0.5rem; }
-  .sliders { margin-top: 1rem; }
+  .section-label { color: #aaa; font-size: 1rem; margin-bottom: 0.3rem; }
+  .sliders { margin-top: 1rem; text-transform: uppercase; }
   .sliders div { margin: 0.3rem 0; }
   .sliders input { width: 160px; vertical-align: middle; }
   .sliders label { color: #aaa; display: inline-block; width: 80px; text-align: right; margin-right: 0.5rem; }
-  .state-config { margin-top: 1rem; }
+  .state-config { margin-top: 1rem; text-transform: uppercase; }
   .state-config table { border-collapse: collapse; }
   .state-config th, .state-config td { padding: 0.2rem 0.8rem; text-align: center; }
   .state-config th { color: #aaa; }
@@ -58,31 +59,31 @@
 <div>
   <button id="powerBtn" onclick="togglePower()">&#x23FB;</button>
 </div>
-<div id="agentState">off</div>
+<div id="agentState">OFF</div>
 <div>
-  <button id="toggleBtn" onclick="toggle()" disabled>idle</button>
+  <button id="toggleBtn" onclick="toggle()" disabled>IDLE</button>
 </div>
 <div class="bpm-control">
   <label>BPM</label><input id="bpmNumber" type="number" min="60" max="240" value="128" oninput="setBpm(this.value)"><input id="bpmSlider" type="range" min="60" max="240" value="128" oninput="setBpm(this.value)">
 </div>
 <div class="sliders">
-  <div><label>master</label><input type="range" min="0" max="100" value="50" oninput="setGain('master', this.value)"></div>
-  <div><label>kick</label><input type="range" min="0" max="100" value="100" oninput="setGain('kick', this.value)"></div>
-  <div><label>bass</label><input type="range" min="0" max="100" value="100" oninput="setGain('bass', this.value)"></div>
-  <div><label>hihat</label><input type="range" min="0" max="100" value="100" oninput="setGain('hihat', this.value)"></div>
-  <div><label>melody</label><input type="range" min="0" max="100" value="100" oninput="setGain('melody', this.value)"></div>
+  <div class="section-label">- VOLUME -</div>
+  <div>
+    <div><label>master</label><input type="range" min="0" max="100" value="50" oninput="setGain('master', this.value)"></div>
+    <div><label>kick</label><input type="range" min="0" max="100" value="100" oninput="setGain('kick', this.value)"></div>
+    <div><label>bass</label><input type="range" min="0" max="100" value="100" oninput="setGain('bass', this.value)"></div>
+    <div><label>hihat</label><input type="range" min="0" max="100" value="100" oninput="setGain('hihat', this.value)"></div>
+    <div><label>melody</label><input type="range" min="0" max="100" value="100" oninput="setGain('melody', this.value)"></div>
+  </div>
 </div>
 <div class="state-config">
   <table>
-    <tr><th></th><th>idle</th><th>thinking</th></tr>
+    <tr><th>- TRACKS -</th><th>IDLE</th><th>THINKING</th></tr>
     <tr><td>kick</td><td><input type="checkbox" checked onchange="setTrackState('kick','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('kick','thinking',this.checked)"></td></tr>
     <tr><td>bass</td><td><input type="checkbox" checked onchange="setTrackState('bass','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('bass','thinking',this.checked)"></td></tr>
     <tr><td>hihat</td><td><input type="checkbox" checked onchange="setTrackState('hihat','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('hihat','thinking',this.checked)"></td></tr>
     <tr><td>melody</td><td><input type="checkbox" onchange="setTrackState('melody','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('melody','thinking',this.checked)"></td></tr>
   </table>
-</div>
-<div id="info">
-  Start を押してから toggle で idle / thinking を切り替え
 </div>
 
 <script>
@@ -176,7 +177,7 @@ function updatePowerUI() {
 
 function updateStateUI() {
   const el = document.getElementById('agentState');
-  el.textContent = isPlaying ? 'on' : 'off';
+  el.textContent = isPlaying ? 'ON' : 'OFF';
   el.className = isPlaying ? 'on' : '';
 }
 
@@ -304,7 +305,7 @@ function setState(newState) {
   isThinking = newState === 'thinking';
   updateStateUI();
   const btn = document.getElementById('toggleBtn');
-  btn.textContent = isThinking ? 'thinking' : 'idle';
+  btn.textContent = isThinking ? 'THINKING' : 'IDLE';
   btn.classList.toggle('thinking', isThinking);
 }
 
