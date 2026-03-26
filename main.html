@@ -441,14 +441,6 @@ function toggle() {
   setState(isThinking ? 'idle' : 'thinking');
 }
 
-// キーボードでも切り替え
-document.addEventListener('keydown', (e) => {
-  if (e.code === 'Space') {
-    e.preventDefault();
-    if (!isPlaying) start();
-    else toggle();
-  }
-});
 
 // WebSocket でサーバーから状態を受け取る
 const WS_URL = `ws://${location.host}`;
