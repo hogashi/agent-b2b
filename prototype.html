@@ -31,7 +31,11 @@
     color: #eee;
   }
   button:hover { background: #333; }
-  #startBtn { background: #2a5; color: #fff; }
+  #powerBtn { font-size: 2rem; width: 3.5rem; height: 3.5rem; padding: 0; border-radius: 50%; background: #333; border: 2px solid #555; }
+  #powerBtn.on { background: #2a5; border-color: #3b6; }
+  #agentState { font-size: 1rem; color: #888; margin-top: 0.3rem; }
+  #agentState.thinking { color: #e94; }
+  #agentState.idle { color: #6a6; }
   #toggleBtn { background: #25a; color: #fff; }
   #toggleBtn.thinking { background: #a52; }
   #info { margin-top: 2rem; color: #888; font-size: 0.9rem; }
@@ -48,9 +52,11 @@
 </head>
 <body>
 
-<div id="state">stopped</div>
 <div>
-  <button id="startBtn" onclick="start()">Start</button>
+  <button id="powerBtn" onclick="togglePower()">&#x23FB;</button>
+</div>
+<div id="agentState">off</div>
+<div>
   <button id="toggleBtn" onclick="toggle()" disabled>idle</button>
 </div>
 <div class="sliders">
@@ -126,9 +132,43 @@ function start() {
   isPlaying = true;
   nextBeatTime = audioCtx.currentTime + 0.05;
   scheduler();
-  document.getElementById('state').textContent = 'idle';
   document.getElementById('toggleBtn').disabled = false;
-  document.getElementById('startBtn').disabled = true;
+  updatePowerUI();
+  updateStateUI();
+}
+
+function stop() {
+  if (!isPlaying) return;
+  clearTimeout(timerID);
+  if (audioCtx) audioCtx.close();
+  audioCtx = null;
+  masterGain = null;
+  isPlaying = false;
+  document.getElementById('toggleBtn').disabled = true;
+  updatePowerUI();
+  updateStateUI();
+}
+
+function togglePower() {
+  if (isPlaying) stop();
+  else start();
+}
+
+function updatePowerUI() {
+  const btn = document.getElementById('powerBtn');
+  btn.classList.toggle('on', isPlaying);
+}
+
+function updateStateUI() {
+  const el = document.getElementById('agentState');
+  if (!isPlaying) {
+    el.textContent = 'off';
+    el.className = '';
+  } else {
+    const state = isThinking ? 'thinking' : 'idle';
+    el.textContent = state;
+    el.className = state;
+  }
 }
 
 let beatCount = 0;
@@ -253,7 +293,7 @@ function setGain(name, val) {
 
 function setState(newState) {
   isThinking = newState === 'thinking';
-  document.getElementById('state').textContent = isThinking ? 'thinking' : 'idle';
+  updateStateUI();
   const btn = document.getElementById('toggleBtn');
   btn.textContent = isThinking ? 'thinking' : 'idle';
   btn.classList.toggle('thinking', isThinking);
