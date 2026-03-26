@@ -200,7 +200,7 @@ function playBeat(time, count) {
 
   // bass: 8分音符でルート音
   if (count % 2 === 0 && isTrackActive('bass')) {
-    playBass(time);
+    playBass(time, count);
   }
 
   // hihat: 8分音符の裏拍
@@ -227,11 +227,19 @@ function playKick(time) {
   osc.stop(time + 0.15);
 }
 
-function playBass(time) {
+function playBass(time, count) {
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
   osc.type = 'sawtooth';
-  osc.frequency.setValueAtTime(55, time); // A1
+  const baseFreq = 55; // A1
+  // たまにスライドを入れる
+  if (Math.random() < 0.2) {
+    const slideFrom = baseFreq * (Math.random() < 0.5 ? 0.8 : 1.3);
+    osc.frequency.setValueAtTime(slideFrom, time);
+    osc.frequency.exponentialRampToValueAtTime(baseFreq, time + 0.08);
+  } else {
+    osc.frequency.setValueAtTime(baseFreq, time);
+  }
   gain.gain.setValueAtTime(0.4, time);
   gain.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
 
