@@ -1,8 +1,15 @@
 {
-  "name": "20260325",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "agent-b2b",
+  "version": "0.0.1",
+  "description": "Go back-to-back with your AI agent — a beat system that reacts to Claude Code's state",
+  "main": "server.js",
+  "bin": {
+    "agent-b2b": "server.js"
+  },
+  "files": [
+    "server.js",
+    "main.html"
+  ],
   "scripts": {
     "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
