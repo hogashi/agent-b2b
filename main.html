@@ -47,14 +47,19 @@
   .bpm-control { margin-top: 1rem; }
   .bpm-control label { color: #aaa; margin-right: 0.5rem; }
   .bpm-control input[type=number] { width: 4em; font-family: monospace; font-size: 1rem; background: #222; color: #eee; border: 1px solid #555; border-radius: 4px; padding: 0.2rem 0.4rem; text-align: center; }
-  .bpm-control input[type=range] { width: 160px; vertical-align: middle; margin-left: 0.5rem; accent-color: #5a8; }
+  .bpm-control input[type=range] { width: 160px; vertical-align: middle; margin-left: 0.5rem; -webkit-appearance: none; appearance: none; height: 6px; background: #333; border-radius: 3px; outline: none; }
+  .bpm-control input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: #5a8; border-radius: 2px; cursor: pointer; }
+  .bpm-control input[type=range]::-moz-range-thumb { width: 14px; height: 14px; background: #5a8; border: none; border-radius: 2px; cursor: pointer; }
   .mixer { margin-top: 1rem; text-transform: uppercase; }
   .mixer table { border-collapse: collapse; }
   .mixer th, .mixer td { padding: 0.2rem 0.6rem; text-align: center; }
   .mixer th { color: #aaa; }
   .mixer td:first-child { text-align: right; color: #aaa; }
-  .mixer input[type=range] { width: 140px; vertical-align: middle; accent-color: #5a8; }
-  .mixer input[type=checkbox] { accent-color: #5a8; }
+  .mixer input[type=range] { width: 140px; vertical-align: middle; -webkit-appearance: none; appearance: none; height: 6px; background: #333; border-radius: 3px; outline: none; }
+  .mixer input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: #5a8; border-radius: 2px; cursor: pointer; }
+  .mixer input[type=range]::-moz-range-thumb { width: 14px; height: 14px; background: #5a8; border: none; border-radius: 2px; cursor: pointer; }
+  .mixer input[type=checkbox] { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; background: #333; border: 1px solid #555; border-radius: 2px; cursor: pointer; vertical-align: middle; }
+  .mixer input[type=checkbox]:checked { background: #5a8; border-color: #6b9; }
   .panel { margin-top: 0.5rem; width: 100%; max-width: 600px; }
   .panel summary { color: #aaa; cursor: pointer; text-transform: uppercase; font-size: 0.9rem; }
   .sequencer .seq-grid { padding-left: 20px; display: grid; grid-template-columns: 60px repeat(16, 30px); gap: 0; margin-top: 0.5rem; align-items: center; }
@@ -202,7 +207,9 @@ function setBpm(val) {
   bpm = Math.max(60, Math.min(240, Number(val)));
   beat = 60 / bpm;
   document.getElementById('bpmNumber').value = bpm;
-  document.getElementById('bpmSlider').value = bpm;
+  const bpmSlider = document.getElementById('bpmSlider');
+  bpmSlider.value = bpm;
+  updateSliderTrack(bpmSlider);
   saveSettings();
 }
 
@@ -369,6 +376,16 @@ function playMelody(time) {
   osc.stop(time + 0.1);
 }
 
+function updateSliderTrack(el) {
+  const pct = (el.value - el.min) / (el.max - el.min) * 100;
+  el.style.background = `linear-gradient(to right, #5a8 ${pct}%, #333 ${pct}%)`;
+}
+
+document.querySelectorAll('input[type=range]').forEach(el => {
+  el.addEventListener('input', () => updateSliderTrack(el));
+  updateSliderTrack(el);
+});
+
 const gainValues = { master: 50, kick: 50, bass: 50, hihat: 50, melody: 50 };
 function setGain(name, val) {
   gainValues[name] = Number(val);
@@ -461,7 +478,7 @@ function loadSettings() {
     const name = cells[0].textContent.toLowerCase();
     // スライダー
     const slider = cells[1] && cells[1].querySelector('input[type=range]');
-    if (slider && gainValues[name] !== undefined) slider.value = gainValues[name];
+    if (slider && gainValues[name] !== undefined) { slider.value = gainValues[name]; updateSliderTrack(slider); }
     // チェックボックス
     if (trackEnabled[name]) {
       const cb1 = cells[2] && cells[2].querySelector('input');
