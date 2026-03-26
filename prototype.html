@@ -30,8 +30,11 @@ button {
   button:hover { background: #333; }
   #powerBtn { font-size: 2rem; width: 3.5rem; height: 3.5rem; padding: 0; border-radius: 50%; background: #333; border: 2px solid #555; }
   #powerBtn.on { background: #2a5; border-color: #3b6; }
-  #agentState { font-size: 1rem; color: #888; margin-top: 0.1rem; }
-  #agentState.on { color: #6a6; }
+  .header { display: grid; grid-template-columns: auto auto; grid-template-rows: auto auto; gap: 0 0.8rem; justify-content: center; }
+  .header-state { grid-column: 1; grid-row: 1; text-align: center; font-size: 1rem; color: #888; margin-top: 0.1rem; }
+  .header-state.on { color: #6a6; }
+  .header-power { grid-column: 1; grid-row: 2; align-self: center; }
+  .header-title { grid-column: 2; grid-row: 2; align-self: center; font-size: 1.8rem; color: #aaa; letter-spacing: 0.1em; }
   .toggle-row { display: flex; align-items: center; gap: 0.5rem; }
   .ws-indicator { display: flex; flex-direction: column; align-items: center; font-size: 0.7rem; color: #888; gap: 0.1rem; }
   .ws-indicator svg { width: 1.2rem; height: 1.2rem; }
@@ -63,10 +66,10 @@ button {
 </head>
 <body>
 
-<div style="display: grid; grid-template-columns: auto auto; grid-template-rows: auto auto; gap: 0 0.8rem; justify-content: center;">
-  <div id="agentState" style="grid-column: 1; grid-row: 1; text-align: center;">OFF</div>
-  <button id="powerBtn" onclick="togglePower()" style="grid-column: 1; grid-row: 2; align-self: center;">&#x23FB;</button>
-  <span style="grid-column: 2; grid-row: 2; align-self: center; font-size: 1.8rem; color: #aaa; letter-spacing: 0.1em;">AGENT-B2B</span>
+<div class="header">
+  <div id="agentState" class="header-state">OFF</div>
+  <button id="powerBtn" class="header-power" onclick="togglePower()">&#x23FB;</button>
+  <span class="header-title">AGENT-B2B</span>
 </div>
 <div class="toggle-row">
   <div id="wsIndicator" class="ws-indicator">
@@ -237,7 +240,7 @@ function updatePowerUI() {
 function updateStateUI() {
   const el = document.getElementById('agentState');
   el.textContent = isPlaying ? 'ON' : 'OFF';
-  el.className = isPlaying ? 'on' : '';
+  el.className = 'header-state' + (isPlaying ? ' on' : '');
 }
 
 let beatCount = 0;
