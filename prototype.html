@@ -36,6 +36,13 @@
   #powerBtn.on { background: #2a5; border-color: #3b6; }
   #agentState { font-size: 1rem; color: #888; margin-top: 0.1rem; }
   #agentState.on { color: #6a6; }
+  .toggle-row { display: flex; align-items: center; gap: 0.5rem; }
+  .ws-indicator { display: flex; flex-direction: column; align-items: center; font-size: 0.7rem; color: #888; gap: 0.1rem; }
+  .ws-indicator svg { width: 1.2rem; height: 1.2rem; }
+  .ws-indicator .ws-connected { display: none; fill: #4a4; }
+  .ws-indicator .ws-disconnected { display: block; fill: #a33; }
+  .ws-indicator.connected .ws-connected { display: block; }
+  .ws-indicator.connected .ws-disconnected { display: none; }
   #toggleBtn { background: #25a; color: #fff; }
   #toggleBtn.thinking { background: #a52; }
   .bpm-control { margin-top: 1rem; }
@@ -60,7 +67,12 @@
   <button id="powerBtn" onclick="togglePower()">&#x23FB;</button>
 </div>
 <div id="agentState">OFF</div>
-<div>
+<div class="toggle-row">
+  <div id="wsIndicator" class="ws-indicator">
+    <span>PLUGGED</span>
+    <svg class="ws-connected" viewBox="0 0 24 24"><path d="M13 2L3 14h8l-1 8 10-12h-8z"/></svg>
+    <svg class="ws-disconnected" viewBox="0 0 24 24"><path d="M12 2L1 21h22zM12 15h.01M12 9v4"/><line x1="12" y1="9" x2="12" y2="13" stroke="#a33" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1"/></svg>
+  </div>
   <button id="toggleBtn" onclick="toggle()" disabled>IDLE</button>
 </div>
 <div class="bpm-control">
@@ -325,15 +337,12 @@ document.addEventListener('keydown', (e) => {
 // WebSocket でサーバーから状態を受け取る
 const WS_URL = `ws://${location.host}`;
 let ws = null;
-let wsStatus = document.createElement('div');
-wsStatus.style.cssText = 'position:fixed;top:8px;right:8px;font-size:0.8rem;color:#666';
-document.body.appendChild(wsStatus);
+const wsIndicator = document.getElementById('wsIndicator');
 
 function connectWs() {
   ws = new WebSocket(WS_URL);
   ws.onopen = () => {
-    wsStatus.textContent = 'ws: connected';
-    wsStatus.style.color = '#4a4';
+    wsIndicator.classList.add('connected');
   };
   ws.onmessage = (e) => {
     const data = JSON.parse(e.data);
@@ -342,8 +351,7 @@ function connectWs() {
     }
   };
   ws.onclose = () => {
-    wsStatus.textContent = 'ws: disconnected';
-    wsStatus.style.color = '#a44';
+    wsIndicator.classList.remove('connected');
     setTimeout(connectWs, 3000);
   };
   ws.onerror = () => ws.close();
