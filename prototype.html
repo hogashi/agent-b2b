@@ -73,7 +73,7 @@
     <svg class="ws-connected" viewBox="0 0 24 24"><path d="M13 2L3 14h8l-1 8 10-12h-8z"/></svg>
     <svg class="ws-disconnected" viewBox="0 0 24 24"><path d="M12 2L1 21h22zM12 15h.01M12 9v4"/><line x1="12" y1="9" x2="12" y2="13" stroke="#a33" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="16" r="1"/></svg>
   </div>
-  <button id="toggleBtn" onclick="toggle()" disabled>IDLE</button>
+  <button id="toggleBtn" onclick="toggle()" disabled>YOURTURN</button>
 </div>
 <div class="bpm-control">
   <label>BPM</label><input id="bpmNumber" type="number" min="60" max="240" value="128" oninput="setBpm(this.value)"><input id="bpmSlider" type="range" min="60" max="240" value="128" oninput="setBpm(this.value)">
@@ -90,7 +90,7 @@
 </div>
 <div class="state-config">
   <table>
-    <tr><th>- TRACKS -</th><th>IDLE</th><th>THINKING</th></tr>
+    <tr><th>- TRACKS -</th><th>YOURTURN</th><th>OPPONENT</th></tr>
     <tr><td>kick</td><td><input type="checkbox" checked onchange="setTrackState('kick','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('kick','thinking',this.checked)"></td></tr>
     <tr><td>bass</td><td><input type="checkbox" checked onchange="setTrackState('bass','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('bass','thinking',this.checked)"></td></tr>
     <tr><td>hihat</td><td><input type="checkbox" checked onchange="setTrackState('hihat','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('hihat','thinking',this.checked)"></td></tr>
@@ -317,7 +317,7 @@ function setState(newState) {
   isThinking = newState === 'thinking';
   updateStateUI();
   const btn = document.getElementById('toggleBtn');
-  btn.textContent = isThinking ? 'THINKING' : 'IDLE';
+  btn.textContent = isThinking ? 'OPPONENT' : 'YOURTURN';
   btn.classList.toggle('thinking', isThinking);
 }
 
