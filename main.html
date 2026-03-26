@@ -79,7 +79,7 @@
 
 <div class="header">
   <div id="agentState" class="header-state">OFF</div>
-  <button id="powerBtn" class="header-power" onclick="togglePower()">&#x23FB;</button>
+  <button id="powerBtn" class="header-power" onclick="togglePower()" aria-label="Power">&#x23FB;</button>
   <span class="header-title">AGENT-B2B</span>
 </div>
 <div class="toggle-row">
@@ -91,16 +91,16 @@
   <button id="toggleBtn" onclick="toggle()" disabled>YOURTURN</button>
 </div>
 <div class="bpm-control">
-  <label>BPM</label><input id="bpmNumber" type="number" min="60" max="240" value="128" oninput="setBpm(this.value)"><input id="bpmSlider" type="range" min="60" max="240" value="128" oninput="setBpm(this.value)">
+  <label for="bpmNumber">BPM</label><input id="bpmNumber" type="number" min="60" max="240" value="128" oninput="setBpm(this.value)"><input id="bpmSlider" type="range" min="60" max="240" value="128" oninput="setBpm(this.value)" aria-label="BPM">
 </div>
 <div class="mixer">
   <table>
     <tr><th></th><th>- VOLUME -</th><th colspan="2">- TRACKS -</th></tr>
-    <tr><td>MASTER</td><td><input type="range" min="0" max="100" value="50" oninput="setGain('master', this.value)"></td><th>YOURTURN</th><th>OPPONENT</th></tr>
-    <tr><td>KICK</td><td><input type="range" min="0" max="100" value="50" oninput="setGain('kick', this.value)"></td><td><input type="checkbox" checked onchange="setTrackState('kick','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('kick','thinking',this.checked)"></td></tr>
-    <tr><td>BASS</td><td><input type="range" min="0" max="100" value="50" oninput="setGain('bass', this.value)"></td><td><input type="checkbox" checked onchange="setTrackState('bass','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('bass','thinking',this.checked)"></td></tr>
-    <tr><td>HIHAT</td><td><input type="range" min="0" max="100" value="50" oninput="setGain('hihat', this.value)"></td><td><input type="checkbox" checked onchange="setTrackState('hihat','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('hihat','thinking',this.checked)"></td></tr>
-    <tr><td>MELODY</td><td><input type="range" min="0" max="100" value="50" oninput="setGain('melody', this.value)"></td><td><input type="checkbox" onchange="setTrackState('melody','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('melody','thinking',this.checked)"></td></tr>
+    <tr><td>MASTER</td><td><input type="range" min="0" max="100" value="50" oninput="setGain('master', this.value)" aria-label="Master volume"></td><th>YOURTURN</th><th>OPPONENT</th></tr>
+    <tr><td>KICK</td><td><input type="range" min="0" max="100" value="50" oninput="setGain('kick', this.value)" aria-label="Kick volume"></td><td><input type="checkbox" checked onchange="setTrackState('kick','idle',this.checked)" aria-label="Kick yourturn"></td><td><input type="checkbox" checked onchange="setTrackState('kick','thinking',this.checked)" aria-label="Kick opponent"></td></tr>
+    <tr><td>BASS</td><td><input type="range" min="0" max="100" value="50" oninput="setGain('bass', this.value)" aria-label="Bass volume"></td><td><input type="checkbox" checked onchange="setTrackState('bass','idle',this.checked)" aria-label="Bass yourturn"></td><td><input type="checkbox" checked onchange="setTrackState('bass','thinking',this.checked)" aria-label="Bass opponent"></td></tr>
+    <tr><td>HIHAT</td><td><input type="range" min="0" max="100" value="50" oninput="setGain('hihat', this.value)" aria-label="Hihat volume"></td><td><input type="checkbox" checked onchange="setTrackState('hihat','idle',this.checked)" aria-label="Hihat yourturn"></td><td><input type="checkbox" checked onchange="setTrackState('hihat','thinking',this.checked)" aria-label="Hihat opponent"></td></tr>
+    <tr><td>MELODY</td><td><input type="range" min="0" max="100" value="50" oninput="setGain('melody', this.value)" aria-label="Melody volume"></td><td><input type="checkbox" onchange="setTrackState('melody','idle',this.checked)" aria-label="Melody yourturn"></td><td><input type="checkbox" checked onchange="setTrackState('melody','thinking',this.checked)" aria-label="Melody opponent"></td></tr>
   </table>
 </div>
 <details class="panel sequencer">
