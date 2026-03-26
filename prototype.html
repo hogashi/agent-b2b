@@ -55,6 +55,15 @@
   .mixer th { color: #aaa; }
   .mixer td:first-child { text-align: right; color: #aaa; }
   .mixer input[type=range] { width: 140px; vertical-align: middle; }
+  .sequencer { margin-top: 0.5rem; width: 100%; max-width: 600px; }
+  .sequencer summary { color: #aaa; cursor: pointer; text-transform: uppercase; font-size: 0.9rem; }
+  .sequencer .seq-grid { margin-top: 0.5rem; }
+  .sequencer .seq-grid { display: grid; grid-template-columns: 60px repeat(16, 30px); gap: 2px; margin-top: 0.5rem; align-items: center; }
+  .sequencer .seq-label { text-align: right; color: #aaa; font-size: 0.8rem; text-transform: uppercase; padding-right: 0.4rem; }
+  .sequencer .seq-step { width: 28px; height: 28px; border: 1px solid #444; background: #222; cursor: pointer; border-radius: 2px; }
+  .sequencer .seq-step.on { background: #5a8; border-color: #6b9; }
+  .sequencer .seq-step.playing { box-shadow: 0 0 4px #fff; }
+  .sequencer .beat-marker { text-align: center; color: #555; font-size: 0.7rem; }
 </style>
 </head>
 <body>
@@ -85,6 +94,10 @@
     <tr><td>MELODY</td><td><input type="range" min="0" max="100" value="50" oninput="setGain('melody', this.value)"></td><td><input type="checkbox" onchange="setTrackState('melody','idle',this.checked)"></td><td><input type="checkbox" checked onchange="setTrackState('melody','thinking',this.checked)"></td></tr>
   </table>
 </div>
+<details class="sequencer">
+  <summary>- SEQUENCER -</summary>
+  <div class="seq-grid" id="seqGrid"></div>
+</details>
 
 <script>
 let masterGain = null;
@@ -111,6 +124,56 @@ function isTrackActive(track) {
   const state = isThinking ? 'thinking' : 'idle';
   return trackEnabled[track][state];
 }
+
+// ステップシーケンサー (16ステップ)
+const STEPS = 16;
+const seqTracks = ['kick', 'bass', 'hihat', 'melody'];
+const patterns = {
+  kick:   [1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0],
+  bass:   [1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,0],
+  hihat:  [0,1,0,1, 0,1,0,1, 0,1,0,1, 0,1,0,1],
+  melody: [0,0,1,0, 0,0,0,1, 0,0,0,1, 0,0,1,0],
+};
+
+function buildSeqGrid() {
+  const grid = document.getElementById('seqGrid');
+  grid.innerHTML = '';
+  // beat markers row: empty cell for label column, then 16 markers
+  const emptyLabel = document.createElement('div');
+  grid.appendChild(emptyLabel);
+  for (let i = 0; i < STEPS; i++) {
+    const m = document.createElement('div');
+    m.className = 'beat-marker';
+    m.textContent = i % 4 === 0 ? (i / 4 + 1) : '';
+    grid.appendChild(m);
+  }
+  // track rows
+  for (const track of seqTracks) {
+    const label = document.createElement('div');
+    label.className = 'seq-label';
+    label.textContent = track;
+    grid.appendChild(label);
+    for (let i = 0; i < STEPS; i++) {
+      const step = document.createElement('div');
+      step.className = 'seq-step' + (patterns[track][i] ? ' on' : '');
+      step.dataset.track = track;
+      step.dataset.step = i;
+      step.onclick = () => {
+        patterns[track][i] = patterns[track][i] ? 0 : 1;
+        step.classList.toggle('on');
+        saveSettings();
+      };
+      grid.appendChild(step);
+    }
+  }
+}
+buildSeqGrid();
+
+function updateSeqHighlight(stepIndex) {
+  document.querySelectorAll('.seq-step.playing').forEach(el => el.classList.remove('playing'));
+  document.querySelectorAll(`.seq-step[data-step="${stepIndex}"]`).forEach(el => el.classList.add('playing'));
+}
+
 let nextBeatTime = 0;
 let timerID = null;
 
@@ -193,23 +256,19 @@ function scheduler() {
 }
 
 function playBeat(time, count) {
-  // kick: 4つ打ち (0, 4, 8, 12 ... = 毎拍)
-  if (count % 4 === 0 && isTrackActive('kick')) {
+  const step = count % STEPS;
+  updateSeqHighlight(step);
+
+  if (patterns.kick[step] && isTrackActive('kick')) {
     playKick(time);
   }
-
-  // bass: 8分音符でルート音
-  if (count % 2 === 0 && isTrackActive('bass')) {
+  if (patterns.bass[step] && isTrackActive('bass')) {
     playBass(time, count);
   }
-
-  // hihat: 8分音符の裏拍
-  if (count % 2 === 1 && isTrackActive('hihat')) {
+  if (patterns.hihat[step] && isTrackActive('hihat')) {
     playHihat(time);
   }
-
-  // melody: 16分音符的に
-  if (isTrackActive('melody')) {
+  if (patterns.melody[step] && isTrackActive('melody')) {
     playMelody(time, count);
   }
 }
@@ -358,7 +417,7 @@ connectWs();
 const STORAGE_KEY = 'agent-b2b-settings';
 
 function saveSettings() {
-  const data = { gainValues, trackEnabled, powerOn: isPlaying, bpm };
+  const data = { gainValues, trackEnabled, powerOn: isPlaying, bpm, patterns };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
@@ -378,6 +437,12 @@ function loadSettings() {
   }
 
   if (data.bpm) setBpm(data.bpm);
+  if (data.patterns) {
+    for (const track of seqTracks) {
+      if (data.patterns[track]) patterns[track] = data.patterns[track];
+    }
+    buildSeqGrid();
+  }
 
   // テーブルに反映
   document.querySelectorAll('.mixer tr').forEach(row => {
