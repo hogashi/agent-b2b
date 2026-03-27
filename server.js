@@ -17,7 +17,7 @@ function parsePort() {
 
 const PORT = parsePort();
 
-const htmlPath = path.join(__dirname, "main.html");
+const htmlPath = path.join(__dirname, "index.html");
 
 const server = http.createServer((req, res) => {
   if (req.method === "GET" && req.url === "/") {
