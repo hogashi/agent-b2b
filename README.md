@@ -2,7 +2,7 @@
 
 Go back-to-back with your AI agent — a beat system that reacts to Claude Code's state.
 
-https://github.com/hogashi/agent-b2b/raw/main/usage.mp4
+https://github.com/user-attachments/assets/6fdd0bff-ac24-4d52-b333-5fd2bb17f9d1
 
 ### Example
 
