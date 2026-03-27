@@ -103,9 +103,9 @@
     <tr><th></th><th>- VOLUME -</th><th colspan="2">- TRACKS -</th></tr>
     <tr><td>MASTER</td><td><input type="range" min="0" max="100" value="50" oninput="setGain('master', this.value)" aria-label="Master volume"></td><th>YOURTURN</th><th>OPPONENT</th></tr>
     <tr><td>KICK</td><td><input type="range" min="0" max="100" value="50" oninput="setGain('kick', this.value)" aria-label="Kick volume"></td><td><input type="checkbox" checked onchange="setTrackState('kick','idle',this.checked)" aria-label="Kick yourturn"></td><td><input type="checkbox" checked onchange="setTrackState('kick','thinking',this.checked)" aria-label="Kick opponent"></td></tr>
-    <tr><td>BASS</td><td><input type="range" min="0" max="100" value="50" oninput="setGain('bass', this.value)" aria-label="Bass volume"></td><td><input type="checkbox" checked onchange="setTrackState('bass','idle',this.checked)" aria-label="Bass yourturn"></td><td><input type="checkbox" checked onchange="setTrackState('bass','thinking',this.checked)" aria-label="Bass opponent"></td></tr>
-    <tr><td>HIHAT</td><td><input type="range" min="0" max="100" value="50" oninput="setGain('hihat', this.value)" aria-label="Hihat volume"></td><td><input type="checkbox" checked onchange="setTrackState('hihat','idle',this.checked)" aria-label="Hihat yourturn"></td><td><input type="checkbox" checked onchange="setTrackState('hihat','thinking',this.checked)" aria-label="Hihat opponent"></td></tr>
-    <tr><td>MELODY</td><td><input type="range" min="0" max="100" value="50" oninput="setGain('melody', this.value)" aria-label="Melody volume"></td><td><input type="checkbox" onchange="setTrackState('melody','idle',this.checked)" aria-label="Melody yourturn"></td><td><input type="checkbox" checked onchange="setTrackState('melody','thinking',this.checked)" aria-label="Melody opponent"></td></tr>
+    <tr><td>BASS</td><td><input type="range" min="0" max="100" value="80" oninput="setGain('bass', this.value)" aria-label="Bass volume"></td><td><input type="checkbox" checked onchange="setTrackState('bass','idle',this.checked)" aria-label="Bass yourturn"></td><td><input type="checkbox" checked onchange="setTrackState('bass','thinking',this.checked)" aria-label="Bass opponent"></td></tr>
+    <tr><td>HIHAT</td><td><input type="range" min="0" max="100" value="50" oninput="setGain('hihat', this.value)" aria-label="Hihat volume"></td><td><input type="checkbox" onchange="setTrackState('hihat','idle',this.checked)" aria-label="Hihat yourturn"></td><td><input type="checkbox" checked onchange="setTrackState('hihat','thinking',this.checked)" aria-label="Hihat opponent"></td></tr>
+    <tr><td>MELODY</td><td><input type="range" min="0" max="100" value="80" oninput="setGain('melody', this.value)" aria-label="Melody volume"></td><td><input type="checkbox" onchange="setTrackState('melody','idle',this.checked)" aria-label="Melody yourturn"></td><td><input type="checkbox" checked onchange="setTrackState('melody','thinking',this.checked)" aria-label="Melody opponent"></td></tr>
   </table>
 </div>
 <details class="panel sequencer">
@@ -136,7 +136,7 @@ let isThinking = false;
 const trackEnabled = {
   kick:   { idle: true, thinking: true },
   bass:   { idle: true, thinking: true },
-  hihat:  { idle: true, thinking: true },
+  hihat:  { idle: false, thinking: true },
   melody: { idle: false, thinking: true },
 };
 
@@ -157,7 +157,7 @@ const patterns = {
   kick:   [1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0],
   bass:   [1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,0],
   hihat:  [0,1,0,1, 0,1,0,1, 0,1,0,1, 0,1,0,1],
-  melody: [0,0,1,0, 0,0,0,1, 0,0,0,1, 0,0,1,0],
+  melody: [1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,0],
 };
 
 let seqCursorRow = 0;
@@ -424,7 +424,7 @@ document.querySelectorAll('input[type=range]').forEach(el => {
   updateSliderTrack(el);
 });
 
-const gainValues = { master: 50, kick: 50, bass: 50, hihat: 50, melody: 50 };
+const gainValues = { master: 50, kick: 50, bass: 80, hihat: 50, melody: 80 };
 function setGain(name, val) {
   gainValues[name] = Number(val);
   if (gains[name]) gains[name].gain.value = val / 100;
