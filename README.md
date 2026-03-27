@@ -2,6 +2,8 @@
 
 Go back-to-back with your AI agent — a beat system that reacts to Claude Code's state.
 
+https://github.com/hogashi/agent-b2b/raw/main/usage.mp4
+
 ### Example
 
 - YOURTURN (waiting for prompt): kick + bass + hihat
