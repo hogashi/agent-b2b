@@ -1,6 +1,6 @@
 {
   "name": "agent-b2b",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Go back-to-back with your AI agent — a beat system that reacts to Claude Code's state",
   "main": "server.js",
   "bin": {
