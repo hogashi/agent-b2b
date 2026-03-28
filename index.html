@@ -129,6 +129,7 @@
 </details>
 
 <script>
+const STORAGE_KEY = 'agent-b2b-settings';
 const gains = {};
 let audioCtx = null;
 let isPlaying = false;
@@ -451,6 +452,8 @@ const wsIndicator = document.getElementById('wsIndicator');
 const wsStatusText = wsIndicator.querySelector('.ws-status-text');
 
 function connectWs() {
+  // GitHub Pages (HTTPS) では WS サーバーがないので接続しない
+  if (location.protocol === 'https:') return;
   ws = new WebSocket(WS_URL);
   ws.onopen = () => {
     wsIndicator.classList.add('connected');
@@ -472,8 +475,6 @@ function connectWs() {
 connectWs();
 
 // localStorage で設定を保存・復元
-const STORAGE_KEY = 'agent-b2b-settings';
-
 function saveSettings() {
   const seqOpen = document.querySelector('.sequencer').open;
   const data = { gainValues, trackEnabled, powerOn: isPlaying, bpm, patterns, seqOpen };
