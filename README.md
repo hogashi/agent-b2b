@@ -115,3 +115,9 @@ Make sure the Claude Code hooks are configured in `.claude/settings.json`. See t
 ## Port
 
 The default port is **43819** (`0xAB2B` for agent-b2b).
+
+## Playground
+
+Try the beat system without installing: https://hogashi.github.io/agent-b2b/
+
+Note: Claude Code integration (WebSocket) is not available in the playground. Use `npx agent-b2b` for the full experience.
