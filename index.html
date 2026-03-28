@@ -341,6 +341,7 @@ function playKick(time) {
   osc.connect(gain).connect(gains.kick);
   osc.start(time);
   osc.stop(time + 0.15);
+  osc.onended = () => { osc.disconnect(); gain.disconnect(); };
 }
 
 function playBass(time) {
@@ -367,6 +368,7 @@ function playBass(time) {
   osc.connect(filter).connect(gain).connect(gains.bass);
   osc.start(time);
   osc.stop(time + 0.12);
+  osc.onended = () => { osc.disconnect(); filter.disconnect(); gain.disconnect(); };
 }
 
 function playHihat(time) {
@@ -390,6 +392,7 @@ function playHihat(time) {
   noise.connect(filter).connect(gain).connect(gains.hihat);
   noise.start(time);
   noise.stop(time + 0.05);
+  noise.onended = () => { noise.disconnect(); filter.disconnect(); gain.disconnect(); };
 }
 
 // minor pentatonic: A C D E G
@@ -414,6 +417,7 @@ function playMelody(time) {
   osc.connect(filter).connect(gain).connect(gains.melody);
   osc.start(time);
   osc.stop(time + 0.1);
+  osc.onended = () => { osc.disconnect(); filter.disconnect(); gain.disconnect(); };
 }
 
 function updateSliderTrack(el) {
